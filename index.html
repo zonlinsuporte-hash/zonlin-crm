@@ -477,6 +477,20 @@
       Por Sector
     </div>
 
+    <div class="nav-section-lbl">Soporte</div>
+    <div class="nav-item" data-view="tickets">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Tickets
+    </div>
+    <div class="nav-item" data-view="equipo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Equipo Instalado
+    </div>
+    <div class="nav-item" data-view="auditoria" id="navAuditoriaItem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Auditoría
+    </div>
+
     <div class="sidebar-footer">Zonlin Dominicana SRL © 2025</div>
   </aside>
 
@@ -839,6 +853,156 @@
       </div>
     </section>
 
+    <!-- ============ TICKETS DE SOPORTE ============ -->
+    <section id="view-tickets" class="view">
+      <p class="page-title">Tickets de Soporte</p>
+      <p class="page-sub">Registra y da seguimiento a incidencias de los clientes.</p>
+
+      <div class="card">
+        <p class="section-title">Nuevo ticket</p>
+        <form id="ticketForm">
+          <div class="field">
+            <label for="ticketCliente">Cliente *</label>
+            <select id="ticketCliente" required>
+              <option value="" disabled selected>Selecciona un cliente</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ticketAsunto">Asunto *</label>
+            <input id="ticketAsunto" type="text" required placeholder="Ej. Sin conexión a internet">
+          </div>
+          <div class="field" style="grid-column:1/-1;">
+            <label for="ticketDescripcion">Descripción</label>
+            <input id="ticketDescripcion" type="text" placeholder="Detalles del problema reportado">
+          </div>
+          <div class="field">
+            <label for="ticketPrioridad">Prioridad</label>
+            <select id="ticketPrioridad">
+              <option>Alta</option><option selected>Media</option><option>Baja</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ticketAsignado">Asignado a</label>
+            <input id="ticketAsignado" type="text" placeholder="Nombre del técnico (opcional)">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="ticketSubmitBtn">Crear Ticket</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <p class="section-title">Tickets registrados</p>
+        <div class="table-wrap">
+          <table id="ticketsTable">
+            <thead>
+              <tr>
+                <th>ID</th><th>Cliente</th><th>Asunto</th><th>Prioridad</th><th>Estado</th><th>Fecha</th><th>Creado por</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="ticketsBody"></tbody>
+          </table>
+        </div>
+        <div id="ticketsEmptyState" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <p>No hay tickets registrados todavía.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EQUIPO INSTALADO ============ -->
+    <section id="view-equipo" class="view">
+      <p class="page-title">Equipo Instalado</p>
+      <p class="page-sub">Inventario de equipos instalados en casa de cada cliente.</p>
+
+      <div class="card">
+        <p class="section-title">Registrar equipo</p>
+        <form id="equipoForm">
+          <div class="field">
+            <label for="equipoCliente">Cliente *</label>
+            <select id="equipoCliente" required>
+              <option value="" disabled selected>Selecciona un cliente</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="equipoTipo">Tipo *</label>
+            <input id="equipoTipo" type="text" required placeholder="Ej. Router, Antena, ONU">
+          </div>
+          <div class="field">
+            <label for="equipoMarcaModelo">Marca / Modelo</label>
+            <input id="equipoMarcaModelo" type="text" placeholder="Ej. TP-Link Archer C6">
+          </div>
+          <div class="field">
+            <label for="equipoNumeroSerie">Número de serie</label>
+            <input id="equipoNumeroSerie" type="text">
+          </div>
+          <div class="field">
+            <label for="equipoMac">MAC</label>
+            <input id="equipoMac" type="text" placeholder="00:00:00:00:00:00">
+          </div>
+          <div class="field">
+            <label for="equipoFecha">Fecha de instalación</label>
+            <input id="equipoFecha" type="date">
+          </div>
+          <div class="field">
+            <label for="equipoEstado">Estado</label>
+            <select id="equipoEstado">
+              <option selected>Instalado</option><option>En Mantenimiento</option><option>Retirado</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1/-1;">
+            <label for="equipoNotas">Notas</label>
+            <input id="equipoNotas" type="text">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="equipoSubmitBtn">Registrar Equipo</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <p class="section-title">Equipos registrados</p>
+        <div class="table-wrap">
+          <table id="equipoTable">
+            <thead>
+              <tr>
+                <th>ID</th><th>Cliente</th><th>Tipo</th><th>Marca / Modelo</th><th>No. Serie</th><th>Instalación</th><th>Estado</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="equipoBody"></tbody>
+          </table>
+        </div>
+        <div id="equipoEmptyState" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <p>No hay equipos registrados todavía.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AUDITORÍA ============ -->
+    <section id="view-auditoria" class="view">
+      <p class="page-title">Log de Auditoría</p>
+      <p class="page-sub">Registro de las últimas 300 acciones realizadas en el sistema (solo Administradores).</p>
+
+      <div class="card">
+        <p class="section-title">Actividad reciente</p>
+        <div class="table-wrap">
+          <table id="auditoriaTable">
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th>
+              </tr>
+            </thead>
+            <tbody id="auditoriaBody"></tbody>
+          </table>
+        </div>
+        <div id="auditoriaEmptyState" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <p>Sin actividad registrada todavía.</p>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -878,6 +1042,50 @@
   </div>
 </div>
 
+<!-- Modal de edición de ticket -->
+<div class="modal-overlay" id="ticketEditModal">
+  <div class="modal">
+    <h3>Editar ticket</h3>
+    <p class="muted" id="ticketEditId">ID</p>
+    <div class="field">
+      <label>Estado</label>
+      <select id="ticketEditEstado"><option>Abierto</option><option>En Progreso</option><option>Cerrado</option></select>
+    </div>
+    <div class="field">
+      <label>Prioridad</label>
+      <select id="ticketEditPrioridad"><option>Alta</option><option>Media</option><option>Baja</option></select>
+    </div>
+    <div class="field">
+      <label>Asignado a</label>
+      <input id="ticketEditAsignado" type="text">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="ticketEditCancel">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="ticketEditSave">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de edición de equipo -->
+<div class="modal-overlay" id="equipoEditModal">
+  <div class="modal">
+    <h3>Editar equipo</h3>
+    <p class="muted" id="equipoEditId">ID</p>
+    <div class="field">
+      <label>Estado</label>
+      <select id="equipoEditEstado"><option>Instalado</option><option>En Mantenimiento</option><option>Retirado</option></select>
+    </div>
+    <div class="field">
+      <label>Notas</label>
+      <input id="equipoEditNotas" type="text">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="equipoEditCancel">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="equipoEditSave">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -904,6 +1112,9 @@ const PLANES = ['7 Mbps','10 Mbps','15 Mbps','20 Mbps','30 Mbps','50 Mbps','100 
 
 let CLIENTS = [];
 let PAGOS = [];
+let TICKETS = [];
+let EQUIPO = [];
+let AUDITORIA = [];
 let ROLE = '';
 
 /* ---------- Sesión de usuario ---------- */
@@ -1047,7 +1258,23 @@ function switchView(view){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelector('.nav-item[data-view="' + view + '"]').classList.add('active');
   document.getElementById('view-' + view).classList.add('active');
-  if (['overview','database','stats','sector','pagos'].includes(view)) loadClients();
+  if (['overview','database','stats','sector','pagos','tickets','equipo','auditoria'].includes(view)) loadClients();
+}
+
+/* ---------- Control de acceso por rol (Tecnico solo ve Tickets/Equipo) ---------- */
+function applyRoleUI(){
+  const tecnico = ROLE === 'Tecnico';
+  const restringidas = ['overview','form','database','pagos','stats','sector'];
+  restringidas.forEach(v=>{
+    const el = document.querySelector('.nav-item[data-view="' + v + '"]');
+    if (el) el.style.display = tecnico ? 'none' : '';
+  });
+  const navAuditoria = document.getElementById('navAuditoriaItem');
+  if (navAuditoria) navAuditoria.style.display = isAdmin() ? '' : 'none';
+  if (tecnico){
+    const active = document.querySelector('.view.active');
+    if (active && restringidas.includes(active.id.replace('view-',''))) switchView('tickets');
+  }
 }
 
 /* ---------- Cédula auto-formato ---------- */
@@ -1180,6 +1407,9 @@ async function loadClients(){
       hideLogin();
       CLIENTS = data.clients || [];
       PAGOS = data.pagos || [];
+      TICKETS = data.tickets || [];
+      EQUIPO = data.equipo || [];
+      AUDITORIA = data.auditoria || [];
       ROLE = data.rol || localStorage.getItem(SESSION_ROL_KEY) || '';
       localStorage.setItem(SESSION_ROL_KEY, ROLE);
       hideLogin();
@@ -1194,6 +1424,12 @@ async function loadClients(){
       renderPagos(PAGOS);
       renderMoraDashboard(CLIENTS, PAGOS);
       renderResumenCobros(PAGOS);
+      populateTicketClienteSelect();
+      renderTickets(TICKETS);
+      populateEquipoClienteSelect();
+      renderEquipo(EQUIPO);
+      renderAuditoria(AUDITORIA);
+      applyRoleUI();
     } else if (data.error && data.error.indexOf('Sesion') !== -1){
       clearSession();
       showLogin('Tu sesión expiró. Inicia sesión de nuevo.');
@@ -1867,6 +2103,387 @@ document.getElementById('pagosBody').addEventListener('click', async (e)=>{
     btn.disabled = false; btn.textContent = 'Eliminar';
   }
 });
+
+/* ---------- Tickets de soporte ---------- */
+function ticketEstadoBadge(estado){
+  estado = (estado||'').toLowerCase();
+  if (estado === 'cerrado') return 'activo';
+  if (estado === 'en progreso') return 'pendiente';
+  return 'cancelado'; // Abierto
+}
+function ticketPrioridadBadge(p){
+  p = (p||'').toLowerCase();
+  if (p === 'alta') return 'cancelado';
+  if (p === 'baja') return 'activo';
+  return 'pendiente'; // Media
+}
+
+function populateTicketClienteSelect(){
+  const sel = document.getElementById('ticketCliente');
+  if (!sel) return;
+  const cur = sel.value;
+  const opts = CLIENTS.map(c=> `<option value="${c['ID Cliente']}">${c['ID Cliente']||''} · ${c['Nombre Completo']||''}</option>`).join('');
+  sel.innerHTML = '<option value="" disabled' + (cur ? '' : ' selected') + '>Selecciona un cliente</option>' + opts;
+  if (cur) sel.value = cur;
+}
+
+function renderTickets(list){
+  const body = document.getElementById('ticketsBody');
+  const empty = document.getElementById('ticketsEmptyState');
+  if (!body) return;
+  if (!list.length){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  const sorted = list.slice().sort((a,b)=> (b._row||0) - (a._row||0));
+  body.innerHTML = sorted.map(t=>`
+    <tr>
+      <td>${t['ID Ticket']||''}</td>
+      <td>${t['Cliente']||''}</td>
+      <td>${t['Asunto']||''}</td>
+      <td><span class="badge ${ticketPrioridadBadge(t['Prioridad'])}">${t['Prioridad']||''}</span></td>
+      <td><span class="badge ${ticketEstadoBadge(t['Estado'])}">${t['Estado']||''}</span></td>
+      <td>${fmtDate(t['Fecha Creacion'])}</td>
+      <td>${t['Creado Por']||''}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm ticket-edit-btn" data-row="${t._row}">Editar</button>
+        ${isAdmin() ? `<button class="btn btn-danger btn-sm ticket-del-btn" data-row="${t._row}">Eliminar</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('ticketForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if (!isConfigured()){
+    toast('Configura primero la conexión a Google Sheets (ver SETUP.md).', 'error');
+    return;
+  }
+  const idCliente = document.getElementById('ticketCliente').value;
+  if (!idCliente){
+    toast('Selecciona un cliente.', 'error');
+    return;
+  }
+  const asunto = document.getElementById('ticketAsunto').value.trim();
+  if (!asunto){
+    toast('El asunto del ticket es obligatorio.', 'error');
+    return;
+  }
+  const cliente = CLIENTS.find(c=> c['ID Cliente'] === idCliente);
+  const payload = {
+    token: CONFIG.TOKEN,
+    session: getSession(),
+    action: 'ticket_nuevo',
+    idCliente: idCliente,
+    clienteNombre: cliente ? cliente['Nombre Completo'] : '',
+    asunto: asunto,
+    descripcion: document.getElementById('ticketDescripcion').value.trim(),
+    prioridad: document.getElementById('ticketPrioridad').value,
+    estado: 'Abierto',
+    asignadoA: document.getElementById('ticketAsignado').value.trim()
+  };
+  const btn = document.getElementById('ticketSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Ticket creado con éxito.', 'success');
+      document.getElementById('ticketForm').reset();
+      loadClients();
+    } else if (data.error && data.error.indexOf('Sesion') !== -1){
+      clearSession();
+      showLogin('Tu sesión expiró. Inicia sesión de nuevo.');
+    } else {
+      toast('Error: ' + (data.error || 'no se pudo guardar'), 'error');
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Crear Ticket';
+  }
+});
+
+let TICKET_EDIT_ROW = null;
+document.getElementById('ticketsBody').addEventListener('click', async (e)=>{
+  const editBtn = e.target.closest('.ticket-edit-btn');
+  if (editBtn){
+    const row = Number(editBtn.dataset.row);
+    const t = TICKETS.find(x=> x._row === row);
+    if (!t) return;
+    TICKET_EDIT_ROW = row;
+    document.getElementById('ticketEditId').textContent = (t['ID Ticket']||'') + ' · ' + (t['Cliente']||'');
+    document.getElementById('ticketEditEstado').value = t['Estado'] || 'Abierto';
+    document.getElementById('ticketEditPrioridad').value = t['Prioridad'] || 'Media';
+    document.getElementById('ticketEditAsignado').value = t['Asignado A'] || '';
+    document.getElementById('ticketEditModal').classList.add('show');
+    return;
+  }
+  const delBtn = e.target.closest('.ticket-del-btn');
+  if (!delBtn) return;
+  const row = Number(delBtn.dataset.row);
+  if (!row || !confirm('¿Eliminar este ticket? Esta acción no se puede deshacer.')) return;
+  delBtn.disabled = true; delBtn.textContent = 'Eliminando...';
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ token: CONFIG.TOKEN, session: getSession(), action:'ticket_eliminar', _row: row })
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Ticket eliminado.', 'success');
+      loadClients();
+    } else {
+      toast('Error: ' + (data.error || 'no se pudo eliminar'), 'error');
+      delBtn.disabled = false; delBtn.textContent = 'Eliminar';
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets.', 'error');
+    delBtn.disabled = false; delBtn.textContent = 'Eliminar';
+  }
+});
+
+document.getElementById('ticketEditCancel').addEventListener('click', ()=>{
+  document.getElementById('ticketEditModal').classList.remove('show');
+  TICKET_EDIT_ROW = null;
+});
+
+document.getElementById('ticketEditSave').addEventListener('click', async ()=>{
+  if (!TICKET_EDIT_ROW) return;
+  const fields = {
+    'Estado': document.getElementById('ticketEditEstado').value,
+    'Prioridad': document.getElementById('ticketEditPrioridad').value,
+    'Asignado A': document.getElementById('ticketEditAsignado').value.trim()
+  };
+  const btn = document.getElementById('ticketEditSave');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ token: CONFIG.TOKEN, session: getSession(), action:'ticket_actualizar', _row: TICKET_EDIT_ROW, fields: fields })
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Ticket actualizado.', 'success');
+      document.getElementById('ticketEditModal').classList.remove('show');
+      TICKET_EDIT_ROW = null;
+      loadClients();
+    } else {
+      toast('Error: ' + (data.error || 'no se pudo guardar'), 'error');
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar Cambios';
+  }
+});
+
+/* ---------- Equipo instalado ---------- */
+function equipoEstadoBadge(estado){
+  estado = (estado||'').toLowerCase();
+  if (estado === 'instalado') return 'activo';
+  if (estado === 'retirado') return 'cancelado';
+  return 'pendiente'; // En Mantenimiento
+}
+
+function populateEquipoClienteSelect(){
+  const sel = document.getElementById('equipoCliente');
+  if (!sel) return;
+  const cur = sel.value;
+  const opts = CLIENTS.map(c=> `<option value="${c['ID Cliente']}">${c['ID Cliente']||''} · ${c['Nombre Completo']||''}</option>`).join('');
+  sel.innerHTML = '<option value="" disabled' + (cur ? '' : ' selected') + '>Selecciona un cliente</option>' + opts;
+  if (cur) sel.value = cur;
+}
+
+function renderEquipo(list){
+  const body = document.getElementById('equipoBody');
+  const empty = document.getElementById('equipoEmptyState');
+  if (!body) return;
+  if (!list.length){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  const sorted = list.slice().sort((a,b)=> (b._row||0) - (a._row||0));
+  body.innerHTML = sorted.map(eq=>`
+    <tr>
+      <td>${eq['ID Equipo']||''}</td>
+      <td>${eq['Cliente']||''}</td>
+      <td>${eq['Tipo']||''}</td>
+      <td>${eq['Marca / Modelo']||''}</td>
+      <td>${eq['Numero de Serie']||''}</td>
+      <td>${fmtDate(eq['Fecha Instalacion'])}</td>
+      <td><span class="badge ${equipoEstadoBadge(eq['Estado'])}">${eq['Estado']||''}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm equipo-edit-btn" data-row="${eq._row}">Editar</button>
+        ${isAdmin() ? `<button class="btn btn-danger btn-sm equipo-del-btn" data-row="${eq._row}">Eliminar</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('equipoForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if (!isConfigured()){
+    toast('Configura primero la conexión a Google Sheets (ver SETUP.md).', 'error');
+    return;
+  }
+  const idCliente = document.getElementById('equipoCliente').value;
+  if (!idCliente){
+    toast('Selecciona un cliente.', 'error');
+    return;
+  }
+  const tipo = document.getElementById('equipoTipo').value.trim();
+  if (!tipo){
+    toast('El tipo de equipo es obligatorio.', 'error');
+    return;
+  }
+  const cliente = CLIENTS.find(c=> c['ID Cliente'] === idCliente);
+  const payload = {
+    token: CONFIG.TOKEN,
+    session: getSession(),
+    action: 'equipo_nuevo',
+    idCliente: idCliente,
+    clienteNombre: cliente ? cliente['Nombre Completo'] : '',
+    tipo: tipo,
+    marcaModelo: document.getElementById('equipoMarcaModelo').value.trim(),
+    numeroSerie: document.getElementById('equipoNumeroSerie').value.trim(),
+    mac: document.getElementById('equipoMac').value.trim(),
+    fechaInstalacion: document.getElementById('equipoFecha').value,
+    estado: document.getElementById('equipoEstado').value,
+    notas: document.getElementById('equipoNotas').value.trim()
+  };
+  const btn = document.getElementById('equipoSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Equipo registrado con éxito.', 'success');
+      document.getElementById('equipoForm').reset();
+      loadClients();
+    } else if (data.error && data.error.indexOf('Sesion') !== -1){
+      clearSession();
+      showLogin('Tu sesión expiró. Inicia sesión de nuevo.');
+    } else {
+      toast('Error: ' + (data.error || 'no se pudo guardar'), 'error');
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Registrar Equipo';
+  }
+});
+
+let EQUIPO_EDIT_ROW = null;
+document.getElementById('equipoBody').addEventListener('click', async (e)=>{
+  const editBtn = e.target.closest('.equipo-edit-btn');
+  if (editBtn){
+    const row = Number(editBtn.dataset.row);
+    const eq = EQUIPO.find(x=> x._row === row);
+    if (!eq) return;
+    EQUIPO_EDIT_ROW = row;
+    document.getElementById('equipoEditId').textContent = (eq['ID Equipo']||'') + ' · ' + (eq['Cliente']||'');
+    document.getElementById('equipoEditEstado').value = eq['Estado'] || 'Instalado';
+    document.getElementById('equipoEditNotas').value = eq['Notas'] || '';
+    document.getElementById('equipoEditModal').classList.add('show');
+    return;
+  }
+  const delBtn = e.target.closest('.equipo-del-btn');
+  if (!delBtn) return;
+  const row = Number(delBtn.dataset.row);
+  if (!row || !confirm('¿Eliminar este equipo? Esta acción no se puede deshacer.')) return;
+  delBtn.disabled = true; delBtn.textContent = 'Eliminando...';
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ token: CONFIG.TOKEN, session: getSession(), action:'equipo_eliminar', _row: row })
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Equipo eliminado.', 'success');
+      loadClients();
+    } else {
+      toast('Error: ' + (data.error || 'no se pudo eliminar'), 'error');
+      delBtn.disabled = false; delBtn.textContent = 'Eliminar';
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets.', 'error');
+    delBtn.disabled = false; delBtn.textContent = 'Eliminar';
+  }
+});
+
+document.getElementById('equipoEditCancel').addEventListener('click', ()=>{
+  document.getElementById('equipoEditModal').classList.remove('show');
+  EQUIPO_EDIT_ROW = null;
+});
+
+document.getElementById('equipoEditSave').addEventListener('click', async ()=>{
+  if (!EQUIPO_EDIT_ROW) return;
+  const fields = {
+    'Estado': document.getElementById('equipoEditEstado').value,
+    'Notas': document.getElementById('equipoEditNotas').value.trim()
+  };
+  const btn = document.getElementById('equipoEditSave');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ token: CONFIG.TOKEN, session: getSession(), action:'equipo_actualizar', _row: EQUIPO_EDIT_ROW, fields: fields })
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Equipo actualizado.', 'success');
+      document.getElementById('equipoEditModal').classList.remove('show');
+      EQUIPO_EDIT_ROW = null;
+      loadClients();
+    } else {
+      toast('Error: ' + (data.error || 'no se pudo guardar'), 'error');
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar Cambios';
+  }
+});
+
+/* ---------- Log de auditoría ---------- */
+function renderAuditoria(list){
+  const body = document.getElementById('auditoriaBody');
+  const empty = document.getElementById('auditoriaEmptyState');
+  if (!body) return;
+  if (!list.length){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  const sorted = list.slice().sort((a,b)=> (b._row||0) - (a._row||0));
+  body.innerHTML = sorted.map(a=>`
+    <tr>
+      <td>${fmtDate(a['Fecha'])}</td>
+      <td>${a['Usuario']||''}</td>
+      <td>${a['Rol']||''}</td>
+      <td>${a['Accion']||''}</td>
+      <td>${a['Detalle']||''}</td>
+    </tr>
+  `).join('');
+}
 
 /* ---------- Init ---------- */
 loadClients();
