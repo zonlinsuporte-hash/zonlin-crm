@@ -847,8 +847,11 @@ function badgeClass(estado){
 
 function initials(name){
   if(!name) return '?';
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]||'')[0] + (parts[1]||'')[0]).toUpperCase();
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const first = parts[0] ? parts[0][0] : '';
+  const second = parts[1] ? parts[1][0] : '';
+  const result = (first + second).toUpperCase();
+  return result || '?';
 }
 
 function mostCommon(list, key){
