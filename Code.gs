@@ -29,10 +29,16 @@ const SHEET_NAME = 'Clientes';
 const USERS_SHEET_NAME = 'Usuarios';
 const SESSIONS_SHEET_NAME = 'Sesiones';
 const PAGOS_SHEET_NAME = 'Pagos';
+const TICKETS_SHEET_NAME = 'Tickets';
+const EQUIPO_SHEET_NAME = 'Equipo';
+const AUDITORIA_SHEET_NAME = 'Auditoria';
 const SESSION_HOURS = 12; // horas que dura una sesión iniciada antes de pedir login otra vez
 
 const MAX_INTENTOS_LOGIN = 5;   // intentos fallidos antes de bloquear la cuenta
 const BLOQUEO_MINUTOS = 15;     // minutos que dura el bloqueo temporal
+
+const BACKUP_FOLDER_NAME = 'Zonlin CRM - Backups';
+const BACKUPS_A_CONSERVAR = 14; // cuántas copias de respaldo recientes conservar
 
 const HEADERS = [
   'ID Cliente',
@@ -56,6 +62,9 @@ const HEADERS = [
 const USER_HEADERS = ['Usuario', 'Salt', 'PasswordHash', 'Nombre', 'Activo', 'Fecha Creacion', 'Rol', 'IntentosFallidos', 'BloqueadoHasta'];
 const SESSION_HEADERS = ['Token', 'Usuario', 'Nombre', 'Creado', 'Expira', 'Rol'];
 const PAGO_HEADERS = ['ID Pago', 'ID Cliente', 'Cliente', 'Periodo', 'Monto', 'Estado', 'Fecha Registro', 'Registrado Por'];
+const TICKET_HEADERS = ['ID Ticket', 'ID Cliente', 'Cliente', 'Asunto', 'Descripcion', 'Prioridad', 'Estado', 'Fecha Creacion', 'Fecha Cierre', 'Creado Por', 'Asignado A'];
+const EQUIPO_HEADERS = ['ID Equipo', 'ID Cliente', 'Cliente', 'Tipo', 'Marca / Modelo', 'Numero de Serie', 'MAC', 'Fecha Instalacion', 'Estado', 'Notas'];
+const AUDIT_HEADERS = ['Fecha', 'Usuario', 'Rol', 'Accion', 'Detalle'];
 
 function getSheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -120,6 +129,66 @@ function getPagosSheet_() {
   return sheet;
 }
 
+function getTicketsSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(TICKETS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(TICKETS_SHEET_NAME);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(TICKET_HEADERS);
+    sheet.getRange(1, 1, 1, TICKET_HEADERS.length)
+      .setFontWeight('bold').setBackground('#13355e').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function getEquipoSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(EQUIPO_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(EQUIPO_SHEET_NAME);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(EQUIPO_HEADERS);
+    sheet.getRange(1, 1, 1, EQUIPO_HEADERS.length)
+      .setFontWeight('bold').setBackground('#13355e').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function getAuditoriaSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(AUDITORIA_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(AUDITORIA_SHEET_NAME);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(AUDIT_HEADERS);
+    sheet.getRange(1, 1, 1, AUDIT_HEADERS.length)
+      .setFontWeight('bold').setBackground('#13355e').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+/** Registra una entrada en el log de auditoría. Nunca interrumpe la acción principal si falla. */
+function auditar_(sesion, accion, detalle) {
+  try {
+    getAuditoriaSheet_().appendRow([
+      new Date(),
+      (sesion && (sesion.usuario || sesion.nombre)) || 'desconocido',
+      (sesion && sesion.rol) || '',
+      accion || '',
+      detalle || ''
+    ]);
+  } catch (err) {
+    Logger.log('No se pudo registrar auditoría: ' + err.message);
+  }
+}
+
 /**
  * MIGRACIÓN ÚNICA: ejecuta esta función UNA SOLA VEZ si tu hoja "Usuarios" fue
  * creada con una versión anterior de Code.gs (solo 6 columnas: Usuario, Salt,
@@ -162,13 +231,13 @@ function hashPassword_(password, salt) {
  * Crea (o actualiza la contraseña de) un usuario.
  * Llama esta función manualmente desde el editor de Apps Script para crear
  * tu primer usuario administrador. Ver SETUP.md Paso 7.
- * rol debe ser 'Administrador' o 'Empleado' (si no se especifica, 'Empleado').
+ * rol debe ser 'Administrador', 'Empleado' o 'Tecnico' (si no se especifica, 'Empleado').
  */
 function crearUsuario_(usuario, contrasena, nombre, rol) {
   const sheet = getUsersSheet_();
   usuario = String(usuario || '').trim().toLowerCase();
   if (!usuario || !contrasena) throw new Error('Usuario y contraseña son obligatorios');
-  rol = (rol === 'Administrador') ? 'Administrador' : 'Empleado';
+  rol = ['Administrador', 'Empleado', 'Tecnico'].includes(rol) ? rol : 'Empleado';
 
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
@@ -213,6 +282,16 @@ function crearUsuarioEmpleado() {
   crearUsuario_('empleado1', 'OtraClaveSegura', 'Nombre del Empleado', 'Empleado');
 }
 
+/**
+ * EJEMPLO: crea un usuario con rol Técnico. Este rol puede ver el dashboard,
+ * gestionar Tickets de soporte y Equipo instalado, pero NO puede crear ni
+ * editar clientes, ni registrar/eliminar pagos, ni ver el log de auditoría.
+ * Cambia usuario/clave/nombre y ejecútala igual que las anteriores.
+ */
+function crearUsuarioTecnico() {
+  crearUsuario_('tecnico1', 'ClaveTecnico123', 'Nombre del Técnico', 'Tecnico');
+}
+
 function limpiarSesionesExpiradas_(sheet) {
   const data = sheet.getDataRange().getValues();
   const now = new Date();
@@ -254,6 +333,7 @@ function login_(usuario, contrasena) {
         const nombre = row[3] || usuario;
         const rol = row[6] || 'Empleado';
         getSessionsSheet_().appendRow([sessionToken, usuario, nombre, now, expira, rol]);
+        auditar_({ usuario: usuario, rol: rol }, 'Inicio de sesion', nombre);
         return { ok: true, sessionToken: sessionToken, nombre: nombre, rol: rol };
       }
 
@@ -309,6 +389,18 @@ function nextPagoId_(sheet) {
   return 'PAG-' + String(count).padStart(5, '0');
 }
 
+function nextTicketId_(sheet) {
+  const lastRow = sheet.getLastRow();
+  const count = Math.max(0, lastRow - 1) + 1;
+  return 'TKT-' + String(count).padStart(5, '0');
+}
+
+function nextEquipoId_(sheet) {
+  const lastRow = sheet.getLastRow();
+  const count = Math.max(0, lastRow - 1) + 1;
+  return 'EQP-' + String(count).padStart(5, '0');
+}
+
 function normalizarCedula_(c) {
   return String(c || '').replace(/\D/g, '');
 }
@@ -345,15 +437,32 @@ function doGet(e) {
         });
     }
 
-    const pagos = listarPagos_(getPagosSheet_());
+    const pagos = listarFilas_(getPagosSheet_());
+    const tickets = listarFilas_(getTicketsSheet_());
+    const equipo = listarFilas_(getEquipoSheet_());
 
-    return jsonOut_({ ok: true, clients: clients, pagos: pagos, rol: sesion.rol, nombre: sesion.nombre });
+    // El log de auditoría solo se entrega a Administradores (las últimas 300 entradas).
+    let auditoria = [];
+    if (sesion.rol === 'Administrador') {
+      auditoria = listarFilas_(getAuditoriaSheet_()).slice(-300);
+    }
+
+    return jsonOut_({
+      ok: true,
+      clients: clients,
+      pagos: pagos,
+      tickets: tickets,
+      equipo: equipo,
+      auditoria: auditoria,
+      rol: sesion.rol,
+      nombre: sesion.nombre
+    });
   } catch (err) {
     return jsonOut_({ ok: false, error: err.message });
   }
 }
 
-function listarPagos_(sheet) {
+function listarFilas_(sheet) {
   const data = sheet.getDataRange().getValues();
   if (data.length < 2) return [];
   const headers = data[0];
@@ -365,6 +474,11 @@ function listarPagos_(sheet) {
       obj._row = idx + 2;
       return obj;
     });
+}
+
+// Alias por compatibilidad con el nombre anterior.
+function listarPagos_(sheet) {
+  return listarFilas_(sheet);
 }
 
 /** Crea o actualiza un cliente, registra/elimina pagos, o maneja login/logout */
@@ -389,6 +503,13 @@ function doPost(e) {
       return jsonOut_({ ok: false, error: 'Sesion invalida o expirada' });
     }
 
+    // El rol Técnico solo puede gestionar Tickets y Equipo instalado: no puede
+    // crear/editar clientes ni registrar/eliminar pagos.
+    const ACCIONES_TECNICO = ['ticket_nuevo', 'ticket_actualizar', 'ticket_eliminar', 'equipo_nuevo', 'equipo_actualizar', 'equipo_eliminar'];
+    if (sesion.rol === 'Tecnico' && !ACCIONES_TECNICO.includes(body.action)) {
+      return jsonOut_({ ok: false, error: 'Tu rol (Técnico) no tiene permiso para esta acción.' });
+    }
+
     if (body.action === 'update') {
       return updateClient_(getSheet_(), body, sesion);
     }
@@ -399,6 +520,30 @@ function doPost(e) {
 
     if (body.action === 'pago_eliminar') {
       return eliminarPago_(getPagosSheet_(), body, sesion);
+    }
+
+    if (body.action === 'ticket_nuevo') {
+      return crearTicket_(getTicketsSheet_(), body, sesion);
+    }
+
+    if (body.action === 'ticket_actualizar') {
+      return actualizarTicket_(getTicketsSheet_(), body, sesion);
+    }
+
+    if (body.action === 'ticket_eliminar') {
+      return eliminarTicket_(getTicketsSheet_(), body, sesion);
+    }
+
+    if (body.action === 'equipo_nuevo') {
+      return crearEquipo_(getEquipoSheet_(), body, sesion);
+    }
+
+    if (body.action === 'equipo_actualizar') {
+      return actualizarEquipo_(getEquipoSheet_(), body, sesion);
+    }
+
+    if (body.action === 'equipo_eliminar') {
+      return eliminarEquipo_(getEquipoSheet_(), body, sesion);
     }
 
     // Crear nuevo cliente
@@ -437,6 +582,7 @@ function doPost(e) {
       fecha
     ]);
 
+    auditar_(sesion, 'Cliente creado', id + ' - ' + nombre);
     return jsonOut_({ ok: true, id: id });
   } catch (err) {
     return jsonOut_({ ok: false, error: err.message });
@@ -461,6 +607,7 @@ function updateClient_(sheet, body, sesion) {
     }
   });
 
+  auditar_(sesion, 'Cliente actualizado', 'Fila ' + row + ' - ' + JSON.stringify(fields));
   return jsonOut_({ ok: true });
 }
 
@@ -485,6 +632,7 @@ function registrarPago_(sheet, body, sesion) {
     sesion.nombre || sesion.usuario
   ]);
 
+  auditar_(sesion, 'Pago registrado', id + ' - ' + idCliente + ' - RD$' + monto);
   return jsonOut_({ ok: true, id: id });
 }
 
@@ -495,5 +643,156 @@ function eliminarPago_(sheet, body, sesion) {
   const row = body._row;
   if (!row) return jsonOut_({ ok: false, error: 'Fila no especificada' });
   sheet.deleteRow(row);
+  auditar_(sesion, 'Pago eliminado', 'Fila ' + row);
   return jsonOut_({ ok: true });
+}
+
+/* ---------- Tickets de soporte ---------- */
+
+function crearTicket_(sheet, body, sesion) {
+  const asunto = String(body.asunto || '').trim();
+  if (!asunto) return jsonOut_({ ok: false, error: 'El asunto del ticket es obligatorio' });
+
+  const id = nextTicketId_(sheet);
+  const fecha = new Date();
+  sheet.appendRow([
+    id,
+    body.idCliente || '',
+    body.clienteNombre || '',
+    asunto,
+    body.descripcion || '',
+    body.prioridad || 'Media',
+    body.estado || 'Abierto',
+    fecha,
+    '',
+    sesion.nombre || sesion.usuario,
+    body.asignadoA || ''
+  ]);
+
+  auditar_(sesion, 'Ticket creado', id + ' - ' + asunto);
+  return jsonOut_({ ok: true, id: id });
+}
+
+function actualizarTicket_(sheet, body, sesion) {
+  const row = body._row;
+  if (!row) return jsonOut_({ ok: false, error: 'Fila no especificada' });
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const fields = body.fields || {};
+
+  if (fields['Estado'] === 'Cerrado') {
+    const colCierre = headers.indexOf('Fecha Cierre') + 1;
+    if (colCierre > 0) sheet.getRange(row, colCierre).setValue(new Date());
+  }
+
+  headers.forEach((h, i) => {
+    if (Object.prototype.hasOwnProperty.call(fields, h)) {
+      sheet.getRange(row, i + 1).setValue(fields[h]);
+    }
+  });
+
+  auditar_(sesion, 'Ticket actualizado', 'Fila ' + row + ' - ' + JSON.stringify(fields));
+  return jsonOut_({ ok: true });
+}
+
+function eliminarTicket_(sheet, body, sesion) {
+  if (sesion.rol !== 'Administrador') {
+    return jsonOut_({ ok: false, error: 'Solo un administrador puede eliminar tickets.' });
+  }
+  const row = body._row;
+  if (!row) return jsonOut_({ ok: false, error: 'Fila no especificada' });
+  sheet.deleteRow(row);
+  auditar_(sesion, 'Ticket eliminado', 'Fila ' + row);
+  return jsonOut_({ ok: true });
+}
+
+/* ---------- Equipo instalado ---------- */
+
+function crearEquipo_(sheet, body, sesion) {
+  const tipo = String(body.tipo || '').trim();
+  if (!tipo) return jsonOut_({ ok: false, error: 'El tipo de equipo es obligatorio' });
+
+  const id = nextEquipoId_(sheet);
+  const fecha = body.fechaInstalacion ? new Date(body.fechaInstalacion) : new Date();
+  sheet.appendRow([
+    id,
+    body.idCliente || '',
+    body.clienteNombre || '',
+    tipo,
+    body.marcaModelo || '',
+    body.numeroSerie || '',
+    body.mac || '',
+    fecha,
+    body.estado || 'Instalado',
+    body.notas || ''
+  ]);
+
+  auditar_(sesion, 'Equipo registrado', id + ' - ' + tipo);
+  return jsonOut_({ ok: true, id: id });
+}
+
+function actualizarEquipo_(sheet, body, sesion) {
+  const row = body._row;
+  if (!row) return jsonOut_({ ok: false, error: 'Fila no especificada' });
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const fields = body.fields || {};
+
+  headers.forEach((h, i) => {
+    if (Object.prototype.hasOwnProperty.call(fields, h)) {
+      sheet.getRange(row, i + 1).setValue(fields[h]);
+    }
+  });
+
+  auditar_(sesion, 'Equipo actualizado', 'Fila ' + row + ' - ' + JSON.stringify(fields));
+  return jsonOut_({ ok: true });
+}
+
+function eliminarEquipo_(sheet, body, sesion) {
+  if (sesion.rol !== 'Administrador') {
+    return jsonOut_({ ok: false, error: 'Solo un administrador puede eliminar equipo.' });
+  }
+  const row = body._row;
+  if (!row) return jsonOut_({ ok: false, error: 'Fila no especificada' });
+  sheet.deleteRow(row);
+  auditar_(sesion, 'Equipo eliminado', 'Fila ' + row);
+  return jsonOut_({ ok: true });
+}
+
+/* ---------- Backup automático ---------- */
+
+/**
+ * Crea una copia completa de esta Google Sheet en una carpeta de Drive
+ * llamada "Zonlin CRM - Backups" y borra las copias más antiguas, dejando
+ * solo las últimas BACKUPS_A_CONSERVAR.
+ * Para automatizarla: en el editor de Apps Script, ve a Triggers (el icono
+ * de reloj a la izquierda) > Add Trigger > elige esta función
+ * (respaldarDatosCRM), evento "Time-driven", y la frecuencia que prefieras
+ * (recomendado: una vez al día).
+ */
+function respaldarDatosCRM() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const file = DriveApp.getFileById(ss.getId());
+  const folder = getOrCrearCarpetaBackups_();
+  const zona = Session.getScriptTimeZone() || 'America/Santo_Domingo';
+  const nombre = 'Backup Zonlin CRM - ' + Utilities.formatDate(new Date(), zona, 'yyyy-MM-dd HH:mm');
+  file.makeCopy(nombre, folder);
+  limpiarBackupsAntiguos_(folder);
+  Logger.log('Backup creado: ' + nombre);
+}
+
+function getOrCrearCarpetaBackups_() {
+  const folders = DriveApp.getFoldersByName(BACKUP_FOLDER_NAME);
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder(BACKUP_FOLDER_NAME);
+}
+
+function limpiarBackupsAntiguos_(folder) {
+  const files = [];
+  const it = folder.getFiles();
+  while (it.hasNext()) files.push(it.next());
+  files.sort((a, b) => b.getDateCreated().getTime() - a.getDateCreated().getTime());
+  for (let i = BACKUPS_A_CONSERVAR; i < files.length; i++) {
+    files[i].setTrashed(true);
+  }
 }
