@@ -61,6 +61,41 @@ Como vas a publicar `index.html` en GitHub (público), agregamos un **token secr
 5. El `index.html` que te entregué ya tiene `CONFIG.TOKEN` con el mismo valor — no necesitas hacer nada más aquí.
 6. Si algún día sospechas que el token se filtró, cambia el valor de `SECRET_TOKEN` en `Code.gs` y de `CONFIG.TOKEN` en `index.html` (deben quedar idénticos) y repite el paso 4.
 
+## Paso 7 — Crear usuarios para entrar al sistema (usuario y contraseña)
+
+Ahora el sistema pide usuario y contraseña antes de mostrar cualquier dato. Las cuentas se guardan (con la contraseña cifrada, nunca en texto plano) en una pestaña nueva llamada **Usuarios** dentro de tu Google Sheet, que se crea sola la primera vez que se usa.
+
+### Crear tu primer usuario (administrador)
+
+1. Vuelve a **Extensiones > Apps Script** en tu Google Sheet (asegúrate de tener pegada la versión más reciente de `Code.gs`, la que incluye `crearUsuarioAdmin`).
+2. Busca la función `crearUsuarioAdmin` cerca de la mitad del archivo:
+   ```js
+   function crearUsuarioAdmin() {
+     crearUsuario_('admin', 'CambiaEsta123', 'Administrador');
+   }
+   ```
+3. Cambia `'admin'` por el usuario que quieras usar y `'CambiaEsta123'` por una contraseña segura. Guarda (Ctrl+S).
+4. Arriba, en el menú desplegable de funciones (al lado del botón ▶ Ejecutar), selecciona **crearUsuarioAdmin**.
+5. Haz clic en **Ejecutar** (▶). La primera vez te pedirá autorizar permisos — acepta.
+6. Listo: ya puedes entrar al sistema con ese usuario y contraseña.
+
+### Crear más usuarios (para tus empleados)
+
+Repite los pasos 2–5 con otro usuario/contraseña, o agrega una segunda función, por ejemplo:
+```js
+function crearUsuarioEmpleado1() {
+  crearUsuario_('jperez', 'OtraClaveSegura', 'Juan Pérez');
+}
+```
+Selecciónala en el menú de funciones y haz clic en Ejecutar.
+
+### Notas sobre las sesiones
+
+- Una sesión iniciada dura **12 horas**; después de eso, el sistema vuelve a pedir usuario y contraseña.
+- El botón **"Cerrar sesión"** (arriba a la derecha) cierra la sesión manualmente en cualquier momento.
+- Si quieres desactivar a alguien sin borrar su cuenta, ve a la pestaña **Usuarios** en tu Google Sheet y cambia su columna **Activo** a `FALSE`.
+- Cada vez que cambies `Code.gs` (incluido agregar usuarios por código), recuerda hacer **Implementar > Gestionar implementaciones > Nueva versión > Implementar**. Ejecutar `crearUsuarioAdmin` directamente desde el editor (como en el paso 4) NO requiere nueva versión, porque no pasa por la URL pública.
+
 ## Notas importantes
 
 - **Precios de planes**: los valores que se autocompletan (7 Mbps = RD$700, etc.) son solo sugerencias de ejemplo. Cámbialos directamente en el formulario de `index.html` (busca `PLAN_PRICES` en el código) para que coincidan con tus tarifas reales.
