@@ -534,6 +534,26 @@
         </div>
       </div>
 
+      <div class="stats-row" style="grid-template-columns:1fr;">
+        <div class="stat-card">
+          <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="num" id="ovTotalHistorico">RD$ 0</div><div class="lbl">Total acumulado histórico (todos los pagos cobrados)</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px;">
+        <p class="section-title">Desglose mensual de cobros</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Periodo</th><th>Total cobrado</th><th># Pagos</th></tr>
+            </thead>
+            <tbody id="desgloseMensualBody"></tbody>
+          </table>
+        </div>
+        <div id="desgloseMensualEmpty" class="empty-state" style="display:none; padding:20px;">Sin pagos registrados todavía.</div>
+      </div>
+
       <div class="row-2">
         <div class="card">
           <p class="section-title">Acciones rápidas</p>
@@ -1119,6 +1139,7 @@ async function loadClients(){
     renderOverviewWidgets([]);
     renderDistributions([]);
     renderMoraDashboard([], []);
+    renderResumenCobros([]);
     return;
   }
   warnings.forEach(w=> w.style.display = 'none');
@@ -1150,6 +1171,7 @@ async function loadClients(){
       populatePagoClienteSelect();
       renderPagos(PAGOS);
       renderMoraDashboard(CLIENTS, PAGOS);
+      renderResumenCobros(PAGOS);
     } else if (data.error && data.error.indexOf('Sesion') !== -1){
       clearSession();
       showLogin('Tu sesión expiró. Inicia sesión de nuevo.');
@@ -1494,6 +1516,43 @@ function renderMoraDashboard(clients, pagos){
 
 const moraAlertBtn = document.getElementById('moraAlertBtn');
 if (moraAlertBtn) moraAlertBtn.addEventListener('click', () => switchView('pagos'));
+
+/* ---------- Total histórico y desglose mensual de cobros ---------- */
+function renderResumenCobros(pagos){
+  const pagados = pagos.filter(p => p['Estado'] === 'Pagado');
+
+  const totalHistorico = pagados.reduce((s, p) => s + (Number(p['Monto']) || 0), 0);
+  const elTotalHistorico = document.getElementById('ovTotalHistorico');
+  if (elTotalHistorico) elTotalHistorico.textContent = fmtMoney(totalHistorico);
+
+  const porPeriodo = {};
+  pagados.forEach(p => {
+    const periodo = p['Periodo'] || 'Sin periodo';
+    if (!porPeriodo[periodo]) porPeriodo[periodo] = { total: 0, count: 0 };
+    porPeriodo[periodo].total += (Number(p['Monto']) || 0);
+    porPeriodo[periodo].count += 1;
+  });
+
+  const periodos = Object.keys(porPeriodo).sort(); // YYYY-MM ordena cronológicamente como texto
+
+  const body = document.getElementById('desgloseMensualBody');
+  const empty = document.getElementById('desgloseMensualEmpty');
+  if (body){
+    if (!periodos.length){
+      body.innerHTML = '';
+      if (empty) empty.style.display = 'block';
+    } else {
+      if (empty) empty.style.display = 'none';
+      body.innerHTML = periodos.map(periodo => `
+        <tr>
+          <td>${periodo}</td>
+          <td>${fmtMoney(porPeriodo[periodo].total)}</td>
+          <td>${porPeriodo[periodo].count}</td>
+        </tr>
+      `).join('');
+    }
+  }
+}
 
 /* ---------- Pagos mensuales ---------- */
 function pagoBadgeClass(estado){
