@@ -24,6 +24,9 @@
 const SECRET_TOKEN = 'zln_zd0EJNViIe8c1J6Ap_Zom_Ob';
 
 const SHEET_NAME = 'Clientes';
+const USERS_SHEET_NAME = 'Usuarios';
+const SESSIONS_SHEET_NAME = 'Sesiones';
+const SESSION_HOURS = 12; // horas que dura una sesión iniciada antes de pedir login otra vez
 
 const HEADERS = [
   'ID Cliente',
@@ -38,6 +41,9 @@ const HEADERS = [
   'Estado',
   'Fecha de Registro'
 ];
+
+const USER_HEADERS = ['Usuario', 'Salt', 'PasswordHash', 'Nombre', 'Activo', 'Fecha Creacion'];
+const SESSION_HEADERS = ['Token', 'Usuario', 'Nombre', 'Creado', 'Expira'];
 
 function getSheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -57,6 +63,142 @@ function getSheet_() {
   return sheet;
 }
 
+function getUsersSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(USERS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(USERS_SHEET_NAME);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(USER_HEADERS);
+    sheet.getRange(1, 1, 1, USER_HEADERS.length)
+      .setFontWeight('bold').setBackground('#13355e').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function getSessionsSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SESSIONS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(SESSIONS_SHEET_NAME);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(SESSION_HEADERS);
+    sheet.getRange(1, 1, 1, SESSION_HEADERS.length)
+      .setFontWeight('bold').setBackground('#13355e').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+/* ---------- Usuarios y contraseñas ---------- */
+
+function generarSalt_() {
+  return Utilities.getUuid().replace(/-/g, '');
+}
+
+function hashPassword_(password, salt) {
+  const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + password);
+  return bytes.map(b => ((b + 256) % 256).toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Crea (o actualiza la contraseña de) un usuario.
+ * Llama esta función manualmente desde el editor de Apps Script para crear
+ * tu primer usuario administrador. Ver SETUP.md Paso 7.
+ */
+function crearUsuario_(usuario, contrasena, nombre) {
+  const sheet = getUsersSheet_();
+  usuario = String(usuario || '').trim().toLowerCase();
+  if (!usuario || !contrasena) throw new Error('Usuario y contraseña son obligatorios');
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim().toLowerCase() === usuario) {
+      // Ya existe: actualiza su contraseña en lugar de duplicar.
+      const salt = generarSalt_();
+      const hash = hashPassword_(contrasena, salt);
+      sheet.getRange(i + 1, 2).setValue(salt);
+      sheet.getRange(i + 1, 3).setValue(hash);
+      sheet.getRange(i + 1, 5).setValue(true);
+      Logger.log('Contraseña actualizada para: ' + usuario);
+      return;
+    }
+  }
+
+  const salt = generarSalt_();
+  const hash = hashPassword_(contrasena, salt);
+  sheet.appendRow([usuario, salt, hash, nombre || usuario, true, new Date()]);
+  Logger.log('Usuario creado: ' + usuario);
+}
+
+/**
+ * EJEMPLO LISTO PARA EJECUTAR: crea el usuario administrador inicial.
+ * 1. Cambia 'admin' y 'CambiaEsta123' por el usuario/clave que quieras.
+ * 2. Selecciona esta función (crearUsuarioAdmin) en el menú desplegable de
+ *    funciones del editor de Apps Script y haz clic en "Ejecutar" (▶).
+ * 3. Repite el proceso (con otro usuario) para crear más cuentas.
+ */
+function crearUsuarioAdmin() {
+  crearUsuario_('admin', 'CambiaEsta123', 'Administrador');
+}
+
+function login_(usuario, contrasena) {
+  const sheet = getUsersSheet_();
+  const data = sheet.getDataRange().getValues();
+  usuario = String(usuario || '').trim().toLowerCase();
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (String(row[0]).trim().toLowerCase() === usuario) {
+      const activo = row[4];
+      if (activo === false) return { ok: false, error: 'Usuario inactivo' };
+      const salt = row[1];
+      const hash = row[2];
+      const intento = hashPassword_(contrasena, salt);
+      if (intento === hash) {
+        const sessionToken = Utilities.getUuid();
+        const now = new Date();
+        const expira = new Date(now.getTime() + SESSION_HOURS * 60 * 60 * 1000);
+        const nombre = row[3] || usuario;
+        getSessionsSheet_().appendRow([sessionToken, usuario, nombre, now, expira]);
+        return { ok: true, sessionToken: sessionToken, nombre: nombre };
+      }
+      return { ok: false, error: 'Usuario o contraseña incorrectos' };
+    }
+  }
+  return { ok: false, error: 'Usuario o contraseña incorrectos' };
+}
+
+function validarSesion_(sessionToken) {
+  if (!sessionToken) return null;
+  const sheet = getSessionsSheet_();
+  const data = sheet.getDataRange().getValues();
+  const now = new Date();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === sessionToken) {
+      const expira = new Date(data[i][4]);
+      if (expira < now) return null;
+      return { usuario: data[i][1], nombre: data[i][2] };
+    }
+  }
+  return null;
+}
+
+function logout_(sessionToken) {
+  if (!sessionToken) return;
+  const sheet = getSessionsSheet_();
+  const data = sheet.getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1; i--) {
+    if (data[i][0] === sessionToken) {
+      sheet.deleteRow(i + 1);
+      break;
+    }
+  }
+}
+
 function nextClientId_(sheet) {
   const lastRow = sheet.getLastRow();
   const count = Math.max(0, lastRow - 1) + 1; // fila 1 = encabezados
@@ -74,6 +216,10 @@ function doGet(e) {
   try {
     if (!e.parameter.token || e.parameter.token !== SECRET_TOKEN) {
       return jsonOut_({ ok: false, error: 'No autorizado' });
+    }
+    const sesion = validarSesion_(e.parameter.session);
+    if (!sesion) {
+      return jsonOut_({ ok: false, error: 'Sesion invalida o expirada' });
     }
     const sheet = getSheet_();
     const data = sheet.getDataRange().getValues();
@@ -95,13 +241,28 @@ function doGet(e) {
   }
 }
 
-/** Crea o actualiza un cliente */
+/** Crea o actualiza un cliente, o maneja login/logout */
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     if (!body.token || body.token !== SECRET_TOKEN) {
       return jsonOut_({ ok: false, error: 'No autorizado' });
     }
+
+    if (body.action === 'login') {
+      return jsonOut_(login_(body.usuario, body.contrasena));
+    }
+
+    if (body.action === 'logout') {
+      logout_(body.session);
+      return jsonOut_({ ok: true });
+    }
+
+    const sesion = validarSesion_(body.session);
+    if (!sesion) {
+      return jsonOut_({ ok: false, error: 'Sesion invalida o expirada' });
+    }
+
     const sheet = getSheet_();
 
     if (body.action === 'update') {
