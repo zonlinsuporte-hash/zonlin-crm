@@ -268,6 +268,43 @@
     border-radius:12px; padding:14px 18px; margin-bottom:18px; font-size:13.5px; font-weight:600;
   }
 
+  /* ---------- Login overlay ---------- */
+  .login-overlay{
+    position:fixed; inset:0; z-index:500; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 30% 20%, #15355e 0%, #0a1626 60%);
+    padding:20px;
+  }
+  .login-overlay.hidden{display:none;}
+  .login-card{
+    width:100%; max-width:380px; background:var(--card); border:1px solid var(--border);
+    border-radius:18px; padding:32px 30px; box-shadow:var(--shadow-lg); text-align:center;
+  }
+  .login-card svg{width:52px; height:52px; background:#fff; border-radius:12px; padding:6px; box-shadow:var(--shadow); margin-bottom:14px;}
+  .login-card h1{margin:0 0 2px; font-size:18px; font-weight:800; color:#fff;}
+  .login-card p.sub{margin:0 0 22px; font-size:12.5px; color:var(--text-mute); font-weight:600;}
+  .login-card .field{text-align:left; margin-bottom:14px;}
+  .login-card .field label{font-size:12.5px; font-weight:700; color:var(--text-dim);}
+  .login-card .field input{
+    width:100%; border:1.5px solid var(--border); border-radius:10px; padding:11px 13px;
+    font-size:14px; font-family:inherit; color:var(--text); background:var(--card-2); margin-top:6px;
+  }
+  .login-card .field input:focus{outline:none; border-color:var(--blue);}
+  .login-card .btn-primary{width:100%; margin-top:6px;}
+  .login-error{
+    display:none; background:#3a1620; border:1px solid var(--red); color:#ffb4c0;
+    border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:600; margin-bottom:14px; text-align:left;
+  }
+  .login-error.show{display:block;}
+  .user-pill{
+    display:flex; align-items:center; gap:8px;
+  }
+  .user-pill .user-name{font-size:12.5px; color:var(--text); font-weight:700;}
+  .user-pill button{
+    background:var(--card-2); border:1px solid var(--border); color:var(--text-dim);
+    font-size:11.5px; font-weight:700; padding:6px 10px; border-radius:8px; cursor:pointer; transition:.15s;
+  }
+  .user-pill button:hover{color:#fff; border-color:var(--red);}
+
   @media (max-width:900px){
     .layout{flex-direction:column;}
     aside.sidebar{width:100%; flex-direction:row; overflow-x:auto; padding:10px; align-items:center;}
@@ -285,6 +322,39 @@
 </style>
 </head>
 <body>
+
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="towerGradLogin" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#15355e"/>
+          <stop offset="100%" stop-color="#5b9c34"/>
+        </linearGradient>
+      </defs>
+      <rect x="38" y="8" width="9" height="34" fill="url(#towerGradLogin)"/>
+      <rect x="50" y="2" width="9" height="40" fill="url(#towerGradLogin)"/>
+      <rect x="62" y="14" width="9" height="28" fill="url(#towerGradLogin)"/>
+      <path d="M30 46 C38 38, 62 38, 70 46" stroke="#5b9c34" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M37 54 C42 49, 58 49, 63 54" stroke="#5b9c34" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <circle cx="50" cy="61" r="5" fill="#5b9c34"/>
+    </svg>
+    <h1>Zonlin Dominicana S.R.L</h1>
+    <p class="sub">Inicia sesión para continuar</p>
+    <div class="login-error" id="loginError"></div>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginUser">Usuario</label>
+        <input id="loginUser" autocomplete="username" required placeholder="usuario">
+      </div>
+      <div class="field">
+        <label for="loginPass">Contraseña</label>
+        <input id="loginPass" type="password" autocomplete="current-password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-primary" id="loginBtn">Iniciar sesión</button>
+    </form>
+  </div>
+</div>
 
 <header class="app-header">
   <div class="brand">
@@ -331,9 +401,15 @@
       <span id="statusSub">Verificando conexión...</span>
     </div>
   </div>
-  <button class="icon-btn" id="refreshTopBtn" title="Sincronizar">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
-  </button>
+  <div style="display:flex; align-items:center; gap:14px;">
+    <div class="user-pill">
+      <span class="user-name" id="loggedUserName"></span>
+      <button id="logoutBtn" type="button">Cerrar sesión</button>
+    </div>
+    <button class="icon-btn" id="refreshTopBtn" title="Sincronizar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+    </button>
+  </div>
 </div>
 
 <div class="layout">
@@ -669,6 +745,76 @@ const PLANES = ['7 Mbps','10 Mbps','15 Mbps','20 Mbps','30 Mbps','50 Mbps','100 
 
 let CLIENTS = [];
 
+/* ---------- Sesión de usuario ---------- */
+const SESSION_KEY = 'zonlin_session';
+const SESSION_NAME_KEY = 'zonlin_session_name';
+
+function getSession(){ return localStorage.getItem(SESSION_KEY) || ''; }
+function setSession(token, nombre){
+  localStorage.setItem(SESSION_KEY, token || '');
+  localStorage.setItem(SESSION_NAME_KEY, nombre || '');
+}
+function clearSession(){
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_NAME_KEY);
+}
+
+function showLogin(message){
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  const err = document.getElementById('loginError');
+  if (message){ err.textContent = message; err.classList.add('show'); }
+  else { err.classList.remove('show'); err.textContent = ''; }
+}
+function hideLogin(){
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.getElementById('loggedUserName').textContent = localStorage.getItem(SESSION_NAME_KEY) || '';
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if (!isConfigured()){
+    showLogin('Configura primero la conexión a Google Sheets (ver SETUP.md).');
+    return;
+  }
+  const usuario = document.getElementById('loginUser').value.trim();
+  const contrasena = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Entrando...';
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ token: CONFIG.TOKEN, action:'login', usuario, contrasena })
+    });
+    const data = await res.json();
+    if (data.ok){
+      setSession(data.sessionToken, data.nombre);
+      document.getElementById('loginPass').value = '';
+      hideLogin();
+      loadClients();
+    } else {
+      showLogin(data.error || 'Usuario o contraseña incorrectos');
+    }
+  } catch(err){
+    showLogin('No se pudo conectar con Google Sheets.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Iniciar sesión';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+  const session = getSession();
+  clearSession();
+  try{
+    await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ token: CONFIG.TOKEN, action:'logout', session })
+    });
+  } catch(err){ /* no importa si falla, ya se borró localmente */ }
+  showLogin();
+});
+
 /* ---------- Helpers ---------- */
 function isConfigured(){ return CONFIG.API_URL && CONFIG.API_URL.indexOf('http') === 0; }
 
@@ -759,6 +905,7 @@ document.getElementById('clientForm').addEventListener('submit', async (e)=>{
 
   const payload = {
     token: CONFIG.TOKEN,
+    session: getSession(),
     nombre: document.getElementById('nombre').value.trim(),
     cedula: document.getElementById('cedula').value.trim(),
     telefono: document.getElementById('telefono').value.trim(),
@@ -784,6 +931,9 @@ document.getElementById('clientForm').addEventListener('submit', async (e)=>{
       toast('Cliente registrado con éxito (' + data.id + ').', 'success');
       document.getElementById('clientForm').reset();
       loadClients();
+    } else if (data.error && data.error.indexOf('Sesion') !== -1){
+      clearSession();
+      showLogin('Tu sesión expiró. Inicia sesión de nuevo.');
     } else {
       toast('Error: ' + (data.error || 'no se pudo guardar'), 'error');
     }
@@ -813,10 +963,18 @@ async function loadClients(){
   }
   warnings.forEach(w=> w.style.display = 'none');
 
+  const session = getSession();
+  if (!session){
+    showLogin();
+    setStatus(false, 'Inicia sesión para ver los clientes');
+    return;
+  }
+
   try{
-    const res = await fetch(CONFIG.API_URL + '?token=' + encodeURIComponent(CONFIG.TOKEN));
+    const res = await fetch(CONFIG.API_URL + '?token=' + encodeURIComponent(CONFIG.TOKEN) + '&session=' + encodeURIComponent(session));
     const data = await res.json();
     if (data.ok){
+      hideLogin();
       CLIENTS = data.clients || [];
       setStatus(true, 'Conectado — sincronización activa con Google Sheets');
       populateFilters();
@@ -824,6 +982,10 @@ async function loadClients(){
       renderHeader(CLIENTS);
       renderOverviewWidgets(CLIENTS);
       renderDistributions(CLIENTS);
+    } else if (data.error && data.error.indexOf('Sesion') !== -1){
+      clearSession();
+      showLogin('Tu sesión expiró. Inicia sesión de nuevo.');
+      setStatus(false, 'Sesión expirada');
     } else {
       setStatus(false, 'Error: ' + data.error);
       toast('Error cargando clientes: ' + data.error, 'error');
@@ -1046,13 +1208,16 @@ document.getElementById('saveEdit').addEventListener('click', async ()=>{
     const res = await fetch(CONFIG.API_URL, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ token: CONFIG.TOKEN, action:'update', _row: editingClient._row, fields })
+      body: JSON.stringify({ token: CONFIG.TOKEN, session: getSession(), action:'update', _row: editingClient._row, fields })
     });
     const data = await res.json();
     if (data.ok){
       toast('Cliente actualizado.', 'success');
       document.getElementById('editModal').classList.remove('show');
       loadClients();
+    } else if (data.error && data.error.indexOf('Sesion') !== -1){
+      clearSession();
+      showLogin('Tu sesión expiró. Inicia sesión de nuevo.');
     } else {
       toast('Error: ' + data.error, 'error');
     }
