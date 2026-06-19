@@ -1429,11 +1429,23 @@ function getCurrentPeriod(){
   return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
 }
 
+// Google Sheets a veces devuelve la columna Periodo como objeto Date/ISO
+// en lugar del texto "YYYY-MM" tal cual se guardó. Esta función normaliza
+// cualquiera de los dos formatos a "YYYY-MM" usando UTC (evita que el
+// desfase de zona horaria cambie el mes).
+function normalizarPeriodo(p){
+  if (!p) return '';
+  if (typeof p === 'string' && /^\d{4}-\d{2}$/.test(p)) return p;
+  const dt = new Date(p);
+  if (isNaN(dt.getTime())) return String(p);
+  return dt.getUTCFullYear() + '-' + String(dt.getUTCMonth() + 1).padStart(2, '0');
+}
+
 function renderMoraDashboard(clients, pagos){
   const periodoActual = getCurrentPeriod();
   const activos = clients.filter(c => c['Estado'] === 'Activo');
 
-  const pagosDelMes = pagos.filter(p => p['Periodo'] === periodoActual);
+  const pagosDelMes = pagos.filter(p => normalizarPeriodo(p['Periodo']) === periodoActual);
   const cobradoMes = pagosDelMes
     .filter(p => p['Estado'] === 'Pagado')
     .reduce((s, p) => s + (Number(p['Monto']) || 0), 0);
@@ -1480,7 +1492,7 @@ function renderMoraDashboard(clients, pagos){
           <div class="avatar" style="background:linear-gradient(135deg,var(--red),#a83246);">${initials(p['Cliente'])}</div>
           <div class="recent-info">
             <div class="nm">${p['Cliente'] || 'Sin nombre'}</div>
-            <div class="sub">${p['ID Cliente'] || ''} · Periodo ${p['Periodo'] || ''}</div>
+            <div class="sub">${p['ID Cliente'] || ''} · Periodo ${normalizarPeriodo(p['Periodo'])}</div>
           </div>
           <div class="recent-right">
             <span class="plan-chip" style="background:rgba(240,85,107,0.18); color:#ffb4c0;">Atrasado</span>
@@ -1527,7 +1539,7 @@ function renderResumenCobros(pagos){
 
   const porPeriodo = {};
   pagados.forEach(p => {
-    const periodo = p['Periodo'] || 'Sin periodo';
+    const periodo = normalizarPeriodo(p['Periodo']) || 'Sin periodo';
     if (!porPeriodo[periodo]) porPeriodo[periodo] = { total: 0, count: 0 };
     porPeriodo[periodo].total += (Number(p['Monto']) || 0);
     porPeriodo[periodo].count += 1;
@@ -1586,7 +1598,7 @@ function renderPagos(list){
     <tr>
       <td>${p['ID Pago']||''}</td>
       <td>${p['Cliente']||''}</td>
-      <td>${p['Periodo']||''}</td>
+      <td>${normalizarPeriodo(p['Periodo'])}</td>
       <td>${fmtMoney(p['Monto'])}</td>
       <td><span class="badge ${pagoBadgeClass(p['Estado'])}">${p['Estado']||'Pendiente'}</span></td>
       <td>${fmtDate(p['Fecha Registro'])}</td>
