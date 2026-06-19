@@ -142,6 +142,7 @@
   .stat-icon.green{background:rgba(61,220,132,0.16); color:var(--green);}
   .stat-icon.amber{background:rgba(245,166,35,0.16); color:var(--amber);}
   .stat-icon.purple{background:rgba(167,139,250,0.16); color:var(--purple);}
+  .stat-icon.red{background:rgba(240,85,107,0.16); color:var(--red);}
   .stat-card .num{font-size:23px; font-weight:800; color:#fff; line-height:1.1;}
   .stat-card .lbl{font-size:12px; color:var(--text-mute); font-weight:600; margin-top:3px;}
   .stat-card .blob{position:absolute; top:14px; right:14px; width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,0.03);}
@@ -185,7 +186,7 @@
   .dist-item:last-child{border-bottom:none; margin-bottom:0;}
 
   /* ---------- Form ---------- */
-  form#clientForm{display:grid; grid-template-columns:1fr 1fr; gap:18px 22px;}
+  form#clientForm, form#pagoForm{display:grid; grid-template-columns:1fr 1fr; gap:18px 22px;}
   .field{display:flex; flex-direction:column; gap:6px;}
   .field.full{grid-column:1/-1;}
   .field label{font-size:12.5px; font-weight:700; color:var(--text-dim);}
@@ -195,6 +196,7 @@
     font-size:14px; font-family:inherit; color:var(--text); background:var(--card-2);
     transition:border-color .15s;
   }
+  .field input:disabled, .field select:disabled{opacity:.55; cursor:not-allowed;}
   .field textarea{resize:vertical; min-height:48px;}
   .field input::placeholder, .field textarea::placeholder{color:var(--text-mute);}
   .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--blue);}
@@ -216,6 +218,8 @@
   .btn-ghost{background:var(--card-2); color:var(--text); border:1px solid var(--border);}
   .btn-ghost:hover{border-color:var(--blue);}
   .btn-sm{padding:8px 14px; font-size:13px; border-radius:8px;}
+  .btn-danger{background:rgba(240,85,107,0.14); color:var(--red); border:1px solid rgba(240,85,107,0.35);}
+  .btn-danger:hover{background:rgba(240,85,107,0.22);}
 
   /* ---------- Toolbar / table ---------- */
   .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;}
@@ -268,6 +272,18 @@
     border-radius:12px; padding:14px 18px; margin-bottom:18px; font-size:13.5px; font-weight:600;
   }
 
+  .alert-mora{
+    background:#3a1620; border:1.5px solid #6e1f2c; color:#ffb4c0;
+    border-radius:12px; padding:14px 18px; margin-bottom:18px; font-size:13.5px; font-weight:600;
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .alert-mora strong{color:#fff;}
+  .alert-mora button{
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); color:#fff;
+    font-size:12.5px; font-weight:700; padding:8px 14px; border-radius:8px; cursor:pointer; transition:.15s; flex-shrink:0;
+  }
+  .alert-mora button:hover{background:rgba(255,255,255,0.18);}
+
   /* ---------- Login overlay ---------- */
   .login-overlay{
     position:fixed; inset:0; z-index:500; display:flex; align-items:center; justify-content:center;
@@ -314,7 +330,7 @@
     .row-2{grid-template-columns:1fr;}
   }
   @media (max-width:720px){
-    form#clientForm{grid-template-columns:1fr;}
+    form#clientForm, form#pagoForm{grid-template-columns:1fr;}
     .stats-row{grid-template-columns:1fr 1fr;}
     .actions-grid{grid-template-columns:1fr;}
     header.app-header{justify-content:center; text-align:center;}
@@ -446,6 +462,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
       Base de Datos
     </div>
+    <div class="nav-item" data-view="pagos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Pagos
+    </div>
 
     <div class="nav-section-lbl">Reportes</div>
     <div class="nav-item" data-view="stats">
@@ -471,6 +491,11 @@
         ⚠️ Aún no has conectado tu Google Sheet. Edita <code>CONFIG.API_URL</code> en este archivo. Ver SETUP.md.
       </div>
 
+      <div id="moraAlert" class="alert-mora" style="display:none;">
+        <span id="moraAlertText"></span>
+        <button type="button" id="moraAlertBtn">Ver pagos</button>
+      </div>
+
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
@@ -487,6 +512,25 @@
         <div class="stat-card">
           <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
           <div class="num" id="ovSector">—</div><div class="lbl">Sector líder</div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <div class="num" id="ovCobrado">RD$ 0</div><div class="lbl">Cobrado este mes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="num" id="ovPendientes">0</div><div class="lbl">Pagos pendientes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="num" id="ovAtrasados">0</div><div class="lbl">Pagos atrasados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="num" id="ovSinPagar">0</div><div class="lbl">Sin pagar este mes</div>
         </div>
       </div>
 
@@ -517,6 +561,21 @@
           <p class="section-title">Últimos registros</p>
           <div class="recent-list" id="recentList">
             <div class="empty-state" style="padding:20px;">Sin registros todavía.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="card">
+          <p class="section-title">Pagos marcados como atrasados</p>
+          <div class="recent-list" id="atrasadosList">
+            <div class="empty-state" style="padding:20px;">Sin pagos atrasados. 🎉</div>
+          </div>
+        </div>
+        <div class="card">
+          <p class="section-title">Clientes activos sin pago este mes</p>
+          <div class="recent-list" id="sinPagarList">
+            <div class="empty-state" style="padding:20px;">Todos los clientes activos están al día.</div>
           </div>
         </div>
       </div>
@@ -689,6 +748,64 @@
       </div>
     </section>
 
+    <!-- ============ PAGOS ============ -->
+    <section id="view-pagos" class="view">
+      <p class="page-title">Pagos Mensuales</p>
+      <p class="page-sub">Registra y consulta los pagos mensuales de los clientes.</p>
+
+      <div class="card">
+        <p class="section-title">Registrar pago</p>
+        <form id="pagoForm">
+          <div class="field">
+            <label for="pagoCliente">Cliente *</label>
+            <select id="pagoCliente" required>
+              <option value="" disabled selected>Selecciona un cliente</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pagoPeriodo">Periodo (mes) *</label>
+            <input id="pagoPeriodo" type="month" required>
+          </div>
+          <div class="field">
+            <label for="pagoMonto">Monto (RD$) *</label>
+            <div class="price-wrap">
+              <span>RD$</span>
+              <input id="pagoMonto" type="number" min="0" step="0.01" required placeholder="0.00">
+            </div>
+          </div>
+          <div class="field">
+            <label for="pagoEstado">Estado</label>
+            <select id="pagoEstado">
+              <option>Pagado</option>
+              <option>Pendiente</option>
+              <option>Atrasado</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="pagoSubmitBtn">Registrar Pago</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <p class="section-title">Historial de pagos</p>
+        <div class="table-wrap">
+          <table id="pagosTable">
+            <thead>
+              <tr>
+                <th>ID Pago</th><th>Cliente</th><th>Periodo</th><th>Monto</th><th>Estado</th><th>Fecha de Registro</th><th>Registrado por</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="pagosBody"></tbody>
+          </table>
+        </div>
+        <div id="pagosEmptyState" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <p>No hay pagos registrados todavía.</p>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -744,20 +861,27 @@ const SECTORES = ['La Javilla','Gualey','Punta de Garza','Barrio Puerto Rico','P
 const PLANES = ['7 Mbps','10 Mbps','15 Mbps','20 Mbps','30 Mbps','50 Mbps','100 Mbps'];
 
 let CLIENTS = [];
+let PAGOS = [];
+let ROLE = '';
 
 /* ---------- Sesión de usuario ---------- */
 const SESSION_KEY = 'zonlin_session';
 const SESSION_NAME_KEY = 'zonlin_session_name';
+const SESSION_ROL_KEY = 'zonlin_session_rol';
 
 function getSession(){ return localStorage.getItem(SESSION_KEY) || ''; }
-function setSession(token, nombre){
+function setSession(token, nombre, rol){
   localStorage.setItem(SESSION_KEY, token || '');
   localStorage.setItem(SESSION_NAME_KEY, nombre || '');
+  localStorage.setItem(SESSION_ROL_KEY, rol || '');
 }
 function clearSession(){
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(SESSION_NAME_KEY);
+  localStorage.removeItem(SESSION_ROL_KEY);
+  ROLE = '';
 }
+function isAdmin(){ return ROLE === 'Administrador'; }
 
 function showLogin(message){
   document.getElementById('loginOverlay').classList.remove('hidden');
@@ -767,7 +891,9 @@ function showLogin(message){
 }
 function hideLogin(){
   document.getElementById('loginOverlay').classList.add('hidden');
-  document.getElementById('loggedUserName').textContent = localStorage.getItem(SESSION_NAME_KEY) || '';
+  const nombre = localStorage.getItem(SESSION_NAME_KEY) || '';
+  const rol = localStorage.getItem(SESSION_ROL_KEY) || '';
+  document.getElementById('loggedUserName').textContent = rol ? (nombre + ' (' + rol + ')') : nombre;
 }
 
 document.getElementById('loginForm').addEventListener('submit', async (e)=>{
@@ -788,7 +914,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e)=>{
     });
     const data = await res.json();
     if (data.ok){
-      setSession(data.sessionToken, data.nombre);
+      setSession(data.sessionToken, data.nombre, data.rol);
       document.getElementById('loginPass').value = '';
       hideLogin();
       loadClients();
@@ -879,7 +1005,7 @@ function switchView(view){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelector('.nav-item[data-view="' + view + '"]').classList.add('active');
   document.getElementById('view-' + view).classList.add('active');
-  if (['overview','database','stats','sector'].includes(view)) loadClients();
+  if (['overview','database','stats','sector','pagos'].includes(view)) loadClients();
 }
 
 /* ---------- Cédula auto-formato ---------- */
@@ -890,6 +1016,17 @@ document.getElementById('cedula').addEventListener('input', (e)=>{
   if (v.length > 10) out = out.slice(0,11) + '-' + v.slice(10);
   e.target.value = out;
 });
+
+/* ---------- Teléfono auto-formato ---------- */
+document.getElementById('telefono').addEventListener('input', (e)=>{
+  let v = e.target.value.replace(/\D/g,'').slice(0,10);
+  let out = v;
+  if (v.length > 3) out = v.slice(0,3) + '-' + v.slice(3);
+  if (v.length > 6) out = out.slice(0,7) + '-' + v.slice(6);
+  e.target.value = out;
+});
+
+function normalizarCedula(c){ return String(c||'').replace(/\D/g,''); }
 
 /* ---------- Auto precio según plan ---------- */
 document.getElementById('plan').addEventListener('change', (e)=>{
@@ -906,12 +1043,31 @@ document.getElementById('clientForm').addEventListener('submit', async (e)=>{
     return;
   }
 
+  const nombreVal = document.getElementById('nombre').value.trim();
+  const cedulaVal = document.getElementById('cedula').value.trim();
+  const telefonoVal = document.getElementById('telefono').value.trim();
+
+  const cedulaNorm = normalizarCedula(cedulaVal);
+  if (cedulaNorm.length !== 11){
+    toast('La cédula debe tener 11 dígitos (000-0000000-0).', 'error');
+    return;
+  }
+  if (normalizarCedula(telefonoVal).length !== 10){
+    toast('El teléfono debe tener 10 dígitos (809-000-0000).', 'error');
+    return;
+  }
+  const dup = CLIENTS.find(c=> normalizarCedula(c['Cedula']) === cedulaNorm);
+  if (dup){
+    toast('Ya existe un cliente con esta cédula: ' + (dup['Nombre Completo']||'') + ' (' + (dup['ID Cliente']||'') + ').', 'error');
+    return;
+  }
+
   const payload = {
     token: CONFIG.TOKEN,
     session: getSession(),
-    nombre: document.getElementById('nombre').value.trim(),
-    cedula: document.getElementById('cedula').value.trim(),
-    telefono: document.getElementById('telefono').value.trim(),
+    nombre: nombreVal,
+    cedula: cedulaVal,
+    telefono: telefonoVal,
     correo: document.getElementById('correo').value.trim(),
     plan: document.getElementById('plan').value,
     precio: document.getElementById('precio').value,
@@ -962,6 +1118,7 @@ async function loadClients(){
     renderHeader([]);
     renderOverviewWidgets([]);
     renderDistributions([]);
+    renderMoraDashboard([], []);
     return;
   }
   warnings.forEach(w=> w.style.display = 'none');
@@ -979,12 +1136,20 @@ async function loadClients(){
     if (data.ok){
       hideLogin();
       CLIENTS = data.clients || [];
+      PAGOS = data.pagos || [];
+      ROLE = data.rol || localStorage.getItem(SESSION_ROL_KEY) || '';
+      localStorage.setItem(SESSION_ROL_KEY, ROLE);
+      hideLogin();
       setStatus(true, 'Conectado — sincronización activa con Google Sheets');
+      // (hideLogin() vuelve a llamarse para refrescar el nombre/rol mostrado en el header)
       populateFilters();
       applyFilters();
       renderHeader(CLIENTS);
       renderOverviewWidgets(CLIENTS);
       renderDistributions(CLIENTS);
+      populatePagoClienteSelect();
+      renderPagos(PAGOS);
+      renderMoraDashboard(CLIENTS, PAGOS);
     } else if (data.error && data.error.indexOf('Sesion') !== -1){
       clearSession();
       showLogin('Tu sesión expiró. Inicia sesión de nuevo.');
@@ -1190,7 +1355,10 @@ function openEditModal(client){
   document.getElementById('modalName').textContent = client['Nombre Completo'] || 'Editar cliente';
   document.getElementById('modalId').textContent = client['ID Cliente'] || '';
   document.getElementById('editPlan').value = client['Plan'] || '7 Mbps';
-  document.getElementById('editPrecio').value = client['Precio'] || 0;
+  const precioInput = document.getElementById('editPrecio');
+  precioInput.value = client['Precio'] || 0;
+  precioInput.disabled = !isAdmin();
+  precioInput.title = isAdmin() ? '' : 'Solo un administrador puede cambiar el precio.';
   document.getElementById('editEstado').value = client['Estado'] || 'Pendiente';
   document.getElementById('editModal').classList.add('show');
 }
@@ -1203,9 +1371,9 @@ document.getElementById('saveEdit').addEventListener('click', async ()=>{
   if (!editingClient) return;
   const fields = {
     'Plan': document.getElementById('editPlan').value,
-    'Precio': document.getElementById('editPrecio').value,
     'Estado': document.getElementById('editEstado').value
   };
+  if (isAdmin()) fields['Precio'] = document.getElementById('editPrecio').value;
 
   try{
     const res = await fetch(CONFIG.API_URL, {
@@ -1231,6 +1399,216 @@ document.getElementById('saveEdit').addEventListener('click', async ()=>{
 
 document.getElementById('editModal').addEventListener('click', (e)=>{
   if (e.target.id === 'editModal') e.target.classList.remove('show');
+});
+
+/* ---------- Dashboard de cobros: KPIs y alertas de mora ---------- */
+function getCurrentPeriod(){
+  const now = new Date();
+  return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+}
+
+function renderMoraDashboard(clients, pagos){
+  const periodoActual = getCurrentPeriod();
+  const activos = clients.filter(c => c['Estado'] === 'Activo');
+
+  const pagosDelMes = pagos.filter(p => p['Periodo'] === periodoActual);
+  const cobradoMes = pagosDelMes
+    .filter(p => p['Estado'] === 'Pagado')
+    .reduce((s, p) => s + (Number(p['Monto']) || 0), 0);
+
+  const pendientes = pagos.filter(p => p['Estado'] === 'Pendiente');
+  const atrasados = pagos.filter(p => p['Estado'] === 'Atrasado');
+  const montoPendiente = pendientes.reduce((s, p) => s + (Number(p['Monto']) || 0), 0);
+  const montoAtrasado = atrasados.reduce((s, p) => s + (Number(p['Monto']) || 0), 0);
+
+  const idsConPagoMes = new Set(pagosDelMes.map(p => String(p['ID Cliente'] || '')));
+  const sinPagar = activos.filter(c => !idsConPagoMes.has(String(c['ID Cliente'] || '')));
+
+  const elCobrado = document.getElementById('ovCobrado');
+  const elPendientes = document.getElementById('ovPendientes');
+  const elAtrasados = document.getElementById('ovAtrasados');
+  const elSinPagar = document.getElementById('ovSinPagar');
+  if (elCobrado) elCobrado.textContent = fmtMoney(cobradoMes);
+  if (elPendientes) elPendientes.textContent = pendientes.length;
+  if (elAtrasados) elAtrasados.textContent = atrasados.length;
+  if (elSinPagar) elSinPagar.textContent = sinPagar.length;
+
+  const alertBox = document.getElementById('moraAlert');
+  const alertText = document.getElementById('moraAlertText');
+  const totalAlerta = atrasados.length + sinPagar.length;
+  if (alertBox && alertText){
+    if (totalAlerta > 0){
+      const montoTotal = montoAtrasado + montoPendiente;
+      alertText.innerHTML = '⚠️ <strong>' + atrasados.length + '</strong> pago(s) atrasados y <strong>' + sinPagar.length + '</strong> cliente(s) sin pagar este mes' +
+        (montoTotal ? ' — RD$ ' + Math.round(montoTotal).toLocaleString('es-DO') + ' en mora' : '') + '.';
+      alertBox.style.display = 'flex';
+    } else {
+      alertBox.style.display = 'none';
+    }
+  }
+
+  const atrasadosList = document.getElementById('atrasadosList');
+  if (atrasadosList){
+    if (!atrasados.length){
+      atrasadosList.innerHTML = '<div class="empty-state" style="padding:20px;">Sin pagos atrasados. 🎉</div>';
+    } else {
+      const top = atrasados.slice().sort((a, b) => (b._row || 0) - (a._row || 0)).slice(0, 6);
+      atrasadosList.innerHTML = top.map(p => `
+        <div class="recent-item">
+          <div class="avatar" style="background:linear-gradient(135deg,var(--red),#a83246);">${initials(p['Cliente'])}</div>
+          <div class="recent-info">
+            <div class="nm">${p['Cliente'] || 'Sin nombre'}</div>
+            <div class="sub">${p['ID Cliente'] || ''} · Periodo ${p['Periodo'] || ''}</div>
+          </div>
+          <div class="recent-right">
+            <span class="plan-chip" style="background:rgba(240,85,107,0.18); color:#ffb4c0;">Atrasado</span>
+            <div class="price">${fmtMoney(p['Monto'])}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  const sinPagarList = document.getElementById('sinPagarList');
+  if (sinPagarList){
+    if (!sinPagar.length){
+      sinPagarList.innerHTML = '<div class="empty-state" style="padding:20px;">Todos los clientes activos están al día.</div>';
+    } else {
+      const top = sinPagar.slice(0, 6);
+      sinPagarList.innerHTML = top.map(c => `
+        <div class="recent-item">
+          <div class="avatar" style="background:linear-gradient(135deg,var(--amber),#b9790f);">${initials(c['Nombre Completo'])}</div>
+          <div class="recent-info">
+            <div class="nm">${c['Nombre Completo'] || 'Sin nombre'}</div>
+            <div class="sub">${c['ID Cliente'] || ''} · ${c['Sector'] || ''}</div>
+          </div>
+          <div class="recent-right">
+            <span class="plan-chip" style="background:rgba(245,166,35,0.18); color:#f5d199;">Sin pago</span>
+            <div class="price">${fmtMoney(c['Precio'])}/mes</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+const moraAlertBtn = document.getElementById('moraAlertBtn');
+if (moraAlertBtn) moraAlertBtn.addEventListener('click', () => switchView('pagos'));
+
+/* ---------- Pagos mensuales ---------- */
+function pagoBadgeClass(estado){
+  estado = (estado||'').toLowerCase();
+  if (estado === 'pagado') return 'activo';
+  if (estado === 'atrasado') return 'cancelado';
+  return 'pendiente';
+}
+
+function populatePagoClienteSelect(){
+  const sel = document.getElementById('pagoCliente');
+  if (!sel) return;
+  const cur = sel.value;
+  const opts = CLIENTS.map(c=> `<option value="${c['ID Cliente']}">${c['ID Cliente']||''} · ${c['Nombre Completo']||''}</option>`).join('');
+  sel.innerHTML = '<option value="" disabled' + (cur ? '' : ' selected') + '>Selecciona un cliente</option>' + opts;
+  if (cur) sel.value = cur;
+}
+
+function renderPagos(list){
+  const body = document.getElementById('pagosBody');
+  const empty = document.getElementById('pagosEmptyState');
+  if (!body) return;
+  if (!list.length){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  const sorted = list.slice().sort((a,b)=> (b._row||0) - (a._row||0));
+  body.innerHTML = sorted.map(p=>`
+    <tr>
+      <td>${p['ID Pago']||''}</td>
+      <td>${p['Cliente']||''}</td>
+      <td>${p['Periodo']||''}</td>
+      <td>${fmtMoney(p['Monto'])}</td>
+      <td><span class="badge ${pagoBadgeClass(p['Estado'])}">${p['Estado']||'Pendiente'}</span></td>
+      <td>${fmtDate(p['Fecha Registro'])}</td>
+      <td>${p['Registrado Por']||''}</td>
+      <td>${isAdmin() ? `<button class="btn btn-danger btn-sm pago-del-btn" data-row="${p._row}">Eliminar</button>` : ''}</td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('pagoForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if (!isConfigured()){
+    toast('Configura primero la conexión a Google Sheets (ver SETUP.md).', 'error');
+    return;
+  }
+  const idCliente = document.getElementById('pagoCliente').value;
+  if (!idCliente){
+    toast('Selecciona un cliente.', 'error');
+    return;
+  }
+  const cliente = CLIENTS.find(c=> c['ID Cliente'] === idCliente);
+  const payload = {
+    token: CONFIG.TOKEN,
+    session: getSession(),
+    action: 'pago_nuevo',
+    idCliente: idCliente,
+    clienteNombre: cliente ? cliente['Nombre Completo'] : '',
+    periodo: document.getElementById('pagoPeriodo').value,
+    monto: document.getElementById('pagoMonto').value,
+    estadoPago: document.getElementById('pagoEstado').value
+  };
+  const btn = document.getElementById('pagoSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Pago registrado con éxito.', 'success');
+      document.getElementById('pagoForm').reset();
+      loadClients();
+    } else if (data.error && data.error.indexOf('Sesion') !== -1){
+      clearSession();
+      showLogin('Tu sesión expiró. Inicia sesión de nuevo.');
+    } else {
+      toast('Error: ' + (data.error || 'no se pudo guardar'), 'error');
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Registrar Pago';
+  }
+});
+
+document.getElementById('pagosBody').addEventListener('click', async (e)=>{
+  const btn = e.target.closest('.pago-del-btn');
+  if (!btn) return;
+  const row = Number(btn.dataset.row);
+  if (!row || !confirm('¿Eliminar este pago? Esta acción no se puede deshacer.')) return;
+  btn.disabled = true; btn.textContent = 'Eliminando...';
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ token: CONFIG.TOKEN, session: getSession(), action:'pago_eliminar', _row: row })
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Pago eliminado.', 'success');
+      loadClients();
+    } else {
+      toast('Error: ' + (data.error || 'no se pudo eliminar'), 'error');
+      btn.disabled = false; btn.textContent = 'Eliminar';
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets.', 'error');
+    btn.disabled = false; btn.textContent = 'Eliminar';
+  }
 });
 
 /* ---------- Init ---------- */

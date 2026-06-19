@@ -96,6 +96,78 @@ Selecciónala en el menú de funciones y haz clic en Ejecutar.
 - Si quieres desactivar a alguien sin borrar su cuenta, ve a la pestaña **Usuarios** en tu Google Sheet y cambia su columna **Activo** a `FALSE`.
 - Cada vez que cambies `Code.gs` (incluido agregar usuarios por código), recuerda hacer **Implementar > Gestionar implementaciones > Nueva versión > Implementar**. Ejecutar `crearUsuarioAdmin` directamente desde el editor (como en el paso 4) NO requiere nueva versión, porque no pasa por la URL pública.
 
+## Paso 8 — Actualizar a la versión con roles, pagos y validaciones
+
+Esta versión agrega 4 mejoras: bloqueo de cuenta tras intentos fallidos + limpieza automática de sesiones vencidas, validación de datos y bloqueo de cédulas duplicadas, roles de usuario (Administrador / Empleado), y un módulo de **Pagos mensuales**. Si ya tenías el sistema funcionando con usuarios creados, sigue estos pasos para no perder tus datos.
+
+### 8.1 — Pega el `Code.gs` nuevo y crea una nueva versión
+
+1. Ve a **Extensiones > Apps Script** en tu Google Sheet.
+2. Borra todo el contenido de `Code.gs` y pega el archivo `Code.gs` nuevo que te entregué.
+3. Guarda (Ctrl+S).
+4. Ve a **Implementar > Gestionar implementaciones**, haz clic en el lápiz (editar), elige **Nueva versión** y haz clic en **Implementar**. La URL no cambia.
+
+### 8.2 — Ejecuta la migración UNA SOLA VEZ (solo si ya tenías usuarios creados)
+
+Las cuentas creadas con la versión anterior no tienen columna de "Rol" todavía. Para no romper nada, la migración agrega las columnas nuevas al final de la pestaña **Usuarios** y le pone `Administrador` a cualquier cuenta existente que no tenga rol (porque antes de esta versión, todas las cuentas tenían acceso total).
+
+1. En el editor de Apps Script, en el menú desplegable de funciones (al lado del botón ▶), elige **migrarUsuariosV2**.
+2. Haz clic en **Ejecutar** (▶). Acepta permisos si te los pide.
+3. Revisa la pestaña **Usuarios** en tu Google Sheet: ahora debe tener las columnas `Rol`, `IntentosFallidos` y `BloqueadoHasta` al final, con tus cuentas existentes marcadas como `Administrador`.
+
+Si tu hoja es nueva (no tenías usuarios antes), puedes omitir este paso — las columnas se crean solas con el formato correcto la primera vez que se usa `crearUsuario_`.
+
+### 8.3 — Roles: Administrador vs Empleado
+
+Ahora cada usuario tiene un rol:
+
+- **Administrador**: acceso total, incluyendo cambiar el precio de un cliente y eliminar pagos registrados.
+- **Empleado**: puede registrar clientes, editar plan/estado y registrar pagos, pero **no puede** cambiar precios ni eliminar pagos (el campo Precio aparece bloqueado en el panel, y el backend también lo rechaza aunque alguien intente forzarlo).
+
+Para crear un usuario con un rol específico, usa o copia las funciones de ejemplo en `Code.gs`:
+
+```js
+function crearUsuarioAdmin() {
+  crearUsuario_('admin', 'CambiaEsta123', 'Administrador', 'Administrador');
+}
+function crearUsuarioEmpleado() {
+  crearUsuario_('empleado1', 'OtraClaveSegura', 'Nombre del Empleado', 'Empleado');
+}
+```
+
+Cambia usuario/clave/nombre, selecciona la función en el menú desplegable del editor de Apps Script y haz clic en **Ejecutar**. El cuarto parámetro de `crearUsuario_` es el rol (`'Administrador'` o `'Empleado'`; si lo omites, queda como `'Empleado'`).
+
+### 8.4 — Seguridad de inicio de sesión
+
+- Tras **5 intentos fallidos** consecutivos con el mismo usuario, la cuenta se bloquea automáticamente por **15 minutos**.
+- Las sesiones vencidas (más de 12 horas) se limpian solas de la pestaña **Sesiones** cada vez que alguien inicia sesión — no necesitas hacer nada manual.
+
+### 8.5 — Validación de datos y duplicados
+
+- Al registrar un cliente, **Nombre, Cédula y Teléfono son obligatorios**.
+- El sistema no permite registrar dos clientes con la **misma cédula** (se compara ignorando guiones/espacios) — se valida tanto en el panel como en el servidor.
+- El campo Teléfono ahora se autoformatea igual que la Cédula.
+
+### 8.6 — Módulo de Pagos mensuales
+
+Aparece una nueva pestaña **"Pagos"** en el menú lateral del panel:
+
+- Cualquier usuario con sesión iniciada puede **registrar un pago** (selecciona cliente, periodo/mes, monto y estado: Pagado, Pendiente o Atrasado).
+- El historial de pagos se guarda en una pestaña nueva llamada **Pagos** dentro de tu Google Sheet, que se crea sola la primera vez que se registra un pago.
+- Solo un **Administrador** puede eliminar un pago registrado (el botón "Eliminar" solo aparece para ese rol).
+
+## Paso 9 — Dashboard de cobros y alertas de mora
+
+El Dashboard ahora muestra una segunda fila de indicadores y dos listas nuevas, calculadas automáticamente a partir de los pagos ya registrados (no requiere cambios en `Code.gs` ni en tu Google Sheet):
+
+- **Cobrado este mes**: suma de los pagos del mes actual marcados como `Pagado`.
+- **Pagos pendientes** / **Pagos atrasados**: cantidad de registros en la pestaña Pagos con esos estados.
+- **Sin pagar este mes**: clientes activos que todavía no tienen ningún pago registrado para el mes en curso.
+- Si hay pagos atrasados o clientes sin pagar este mes, aparece un **aviso rojo** arriba del Dashboard con el total en mora (en RD$) y un botón directo a la pestaña Pagos.
+- Dos listas nuevas: **"Pagos marcados como atrasados"** y **"Clientes activos sin pago este mes"**, con los casos más recientes/relevantes.
+
+No necesitas configurar nada: el estado de cada pago (`Pagado` / `Pendiente` / `Atrasado`) se sigue definiendo manualmente al registrar el pago en la pestaña "Pagos" del panel — el Dashboard solo lo resume y lo destaca automáticamente.
+
 ## Notas importantes
 
 - **Precios de planes**: los valores que se autocompletan (7 Mbps = RD$700, etc.) son solo sugerencias de ejemplo. Cámbialos directamente en el formulario de `index.html` (busca `PLAN_PRICES` en el código) para que coincidan con tus tarifas reales.
