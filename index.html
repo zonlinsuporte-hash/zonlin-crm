@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zonlin Dominicana SRL — CRM de Clientes</title>
+<style>
+  :root{
+    --bg:#0a1626;
+    --bg-2:#0d1c30;
+    --sidebar:#0c1a2c;
+    --card:#11233a;
+    --card-2:#142a44;
+    --border:#1d3553;
+    --border-soft:#16294280;
+    --text:#e7edf6;
+    --text-dim:#93a6c2;
+    --text-mute:#5f7592;
+    --blue:#4f7df0;
+    --blue-soft:#2a3f63;
+    --green:#3ddc84;
+    --green-dim:#2c9b62;
+    --amber:#f5a623;
+    --purple:#a78bfa;
+    --red:#f0556b;
+    --radius:14px;
+    --shadow:0 4px 18px rgba(0,0,0,0.35);
+    --shadow-lg:0 16px 40px rgba(0,0,0,0.5);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  a{color:inherit;}
+  code{background:#0006; padding:2px 5px; border-radius:5px;}
+
+  /* ---------- Top header ---------- */
+  header.app-header{
+    background:linear-gradient(90deg,#0f2747 0%, #15355e 38%, #1c4a82 68%, #2d6a45 100%);
+    border-bottom:1px solid var(--border);
+    padding:14px 24px;
+    display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
+    position:relative; overflow:hidden;
+  }
+  .brand{display:flex; align-items:center; gap:12px; position:relative; z-index:2;}
+  .logo-box{
+    position:absolute; left:0; top:0; height:100%; width:84vw; max-width:1280px; min-width:420px;
+    background:#fff;
+    display:flex; align-items:center; justify-content:flex-start;
+    padding-left:32px; z-index:1; pointer-events:none;
+    -webkit-mask-image:linear-gradient(90deg, #000 5%, rgba(0,0,0,0.65) 16%, rgba(0,0,0,0.32) 30%, rgba(0,0,0,0.1) 46%, transparent 65%);
+    mask-image:linear-gradient(90deg, #000 5%, rgba(0,0,0,0.65) 16%, rgba(0,0,0,0.32) 30%, rgba(0,0,0,0.1) 46%, transparent 65%);
+  }
+  .brand-text{margin-left:150px;}
+  .sidebar-logo{
+    display:flex; align-items:center; gap:10px; padding:4px 10px 18px; margin-bottom:6px;
+    border-bottom:1px solid var(--border);
+  }
+  .sidebar-logo svg{width:34px; height:34px; flex-shrink:0; background:#fff; border-radius:9px; padding:4px; box-shadow:var(--shadow);}
+  .sidebar-logo span{font-size:12.5px; font-weight:800; color:var(--text); letter-spacing:.2px;}
+  .brand-text h1{margin:0; font-size:17px; font-weight:800; color:#fff; letter-spacing:.3px;}
+  .brand-text p{margin:2px 0 0; font-size:11.5px; color:#cfe0f5; font-weight:600;}
+  .header-pills{display:flex; gap:10px; flex-wrap:wrap; position:relative; z-index:2;}
+  .pill{
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);
+    border-radius:12px; padding:9px 16px; text-align:center; min-width:84px;
+  }
+  .pill .pill-num{font-size:16px; font-weight:800; color:#fff;}
+  .pill .pill-lbl{font-size:9.5px; color:#cfe0f5; text-transform:uppercase; letter-spacing:.5px; font-weight:700; margin-top:2px;}
+  .pill.green .pill-num{color:#9af5c4;}
+  .pill-new-btn{
+    font-family:inherit; cursor:pointer; transition:.15s;
+  }
+  .pill-new-btn:hover{background:rgba(255,255,255,0.16); border-color:rgba(255,255,255,0.3);}
+  .pill-num-split{font-size:14px; font-weight:800; color:#fff; display:flex; align-items:baseline; justify-content:center; gap:3px;}
+  .pill-num-split small{font-size:9px; font-weight:700; color:#cfe0f5; text-transform:uppercase; margin-right:2px;}
+  .pill-num-split .pill-split-sep{color:var(--text-mute); margin:0 1px;}
+
+  /* ---------- Status bar ---------- */
+  .status-bar{
+    background:var(--bg-2); border-bottom:1px solid var(--border);
+    padding:10px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .status-left{display:flex; align-items:center; gap:10px;}
+  .status-dot{width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px rgba(61,220,132,0.18);}
+  .status-dot.off{background:var(--text-mute); box-shadow:none;}
+  .status-left strong{font-size:13px; color:var(--text);}
+  .status-left span{font-size:12px; color:var(--text-mute); display:block;}
+  .icon-btn{
+    background:var(--card-2); border:1px solid var(--border); color:var(--text-dim);
+    width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:.15s;
+  }
+  .icon-btn:hover{color:#fff; border-color:var(--blue);}
+  .icon-btn svg{width:16px; height:16px;}
+
+  /* ---------- Layout ---------- */
+  .layout{display:flex; min-height:calc(100vh - 108px);}
+  aside.sidebar{
+    width:236px; flex-shrink:0; background:var(--sidebar); border-right:1px solid var(--border);
+    padding:20px 14px; display:flex; flex-direction:column;
+  }
+  .nav-section-lbl{
+    font-size:10.5px; font-weight:800; color:var(--text-mute); text-transform:uppercase;
+    letter-spacing:.6px; margin:18px 10px 8px;
+  }
+  .nav-section-lbl:first-child{margin-top:0;}
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
+    color:var(--text-dim); font-size:13.5px; font-weight:600; cursor:pointer; margin-bottom:2px;
+    border:1px solid transparent; transition:.12s;
+  }
+  .nav-item svg{width:16px; height:16px; flex-shrink:0;}
+  .nav-item:hover{background:var(--card); color:var(--text);}
+  .nav-item.active{background:linear-gradient(135deg,var(--blue),#3a63c8); color:#fff; box-shadow:0 4px 14px rgba(79,125,240,0.35);}
+  .sidebar-footer{margin-top:auto; padding:14px 10px 4px; font-size:11px; color:var(--text-mute); text-align:center;}
+
+  main.content{flex:1; padding:24px; min-width:0;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px;}
+  .page-title{margin:0 0 2px; font-size:20px; font-weight:800; color:#fff;}
+  .page-sub{margin:0 0 20px; font-size:13px; color:var(--text-mute);}
+
+  /* ---------- Stat cards ---------- */
+  .stats-row{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px;}
+  .stat-card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:18px 20px; position:relative; overflow:hidden;
+  }
+  .stat-icon{
+    width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px;
+  }
+  .stat-icon svg{width:17px; height:17px;}
+  .stat-icon.blue{background:rgba(79,125,240,0.18); color:var(--blue);}
+  .stat-icon.green{background:rgba(61,220,132,0.16); color:var(--green);}
+  .stat-icon.amber{background:rgba(245,166,35,0.16); color:var(--amber);}
+  .stat-icon.purple{background:rgba(167,139,250,0.16); color:var(--purple);}
+  .stat-card .num{font-size:23px; font-weight:800; color:#fff; line-height:1.1;}
+  .stat-card .lbl{font-size:12px; color:var(--text-mute); font-weight:600; margin-top:3px;}
+  .stat-card .blob{position:absolute; top:14px; right:14px; width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,0.03);}
+
+  /* ---------- Two-col rows ---------- */
+  .row-2{display:grid; grid-template-columns:1.1fr 1fr; gap:18px; margin-bottom:18px;}
+
+  .section-title{margin:0 0 14px; font-size:14.5px; font-weight:800; color:#fff;}
+
+  .actions-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .action-btn{
+    background:var(--card-2); border:1px solid var(--border); color:var(--text);
+    border-radius:11px; padding:16px 14px; font-size:13.5px; font-weight:700; text-align:left;
+    cursor:pointer; transition:.15s; display:flex; flex-direction:column; gap:6px;
+  }
+  .action-btn:hover{border-color:var(--blue); background:var(--blue-soft);}
+  .action-btn svg{width:18px; height:18px; color:var(--blue);}
+
+  .recent-list{display:flex; flex-direction:column; gap:12px;}
+  .recent-item{display:flex; align-items:center; gap:12px;}
+  .avatar{
+    width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--purple));
+    color:#fff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .recent-info{flex:1; min-width:0;}
+  .recent-info .nm{font-size:13.5px; font-weight:700; color:#fff;}
+  .recent-info .sub{font-size:11.5px; color:var(--text-mute);}
+  .recent-right{text-align:right;}
+  .plan-chip{
+    display:inline-block; background:var(--blue-soft); color:#bcd0ff; font-size:11px; font-weight:700;
+    padding:3px 9px; border-radius:999px;
+  }
+  .recent-right .price{font-size:11px; color:var(--text-mute); margin-top:3px;}
+
+  .dist-row{display:flex; align-items:center; justify-content:space-between; font-size:13px; padding:10px 0;}
+  .dist-row .dist-label{color:var(--text); font-weight:600; flex:1;}
+  .dist-row .dist-count{color:var(--text-mute); font-size:12px; margin-left:10px;}
+  .dist-bar-track{height:6px; border-radius:6px; background:var(--card-2); margin-top:6px; overflow:hidden;}
+  .dist-bar-fill{height:100%; border-radius:6px; background:linear-gradient(90deg,var(--blue),var(--purple));}
+  .dist-item{padding-bottom:6px; border-bottom:1px solid var(--border-soft); margin-bottom:6px;}
+  .dist-item:last-child{border-bottom:none; margin-bottom:0;}
+
+  /* ---------- Form ---------- */
+  form#clientForm{display:grid; grid-template-columns:1fr 1fr; gap:18px 22px;}
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:12.5px; font-weight:700; color:var(--text-dim);}
+  .field small{font-size:11px; color:var(--text-mute); font-weight:500;}
+  .field input, .field select, .field textarea{
+    border:1.5px solid var(--border); border-radius:10px; padding:11px 13px;
+    font-size:14px; font-family:inherit; color:var(--text); background:var(--card-2);
+    transition:border-color .15s;
+  }
+  .field textarea{resize:vertical; min-height:48px;}
+  .field input::placeholder, .field textarea::placeholder{color:var(--text-mute);}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--blue);}
+  .field select option{background:var(--card-2); color:var(--text);}
+  .id-preview{
+    display:flex; align-items:center; gap:10px; background:var(--card-2); border:1.5px dashed var(--border);
+    border-radius:10px; padding:11px 13px; font-weight:700; color:var(--text-dim); font-size:14px;
+  }
+  .price-wrap{position:relative;}
+  .price-wrap span{position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--text-mute); font-weight:700;}
+  .price-wrap input{padding-left:42px;}
+  .form-actions{grid-column:1/-1; display:flex; gap:12px; margin-top:6px; flex-wrap:wrap;}
+
+  button{font-family:inherit; cursor:pointer;}
+  .btn{border:none; border-radius:10px; padding:12px 22px; font-size:14px; font-weight:700; transition:transform .12s, box-shadow .12s;}
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:linear-gradient(135deg,var(--blue),#3a63c8); color:#fff; box-shadow:0 6px 16px rgba(79,125,240,0.35);}
+  .btn-primary:hover{box-shadow:0 8px 20px rgba(79,125,240,0.45);}
+  .btn-ghost{background:var(--card-2); color:var(--text); border:1px solid var(--border);}
+  .btn-ghost:hover{border-color:var(--blue);}
+  .btn-sm{padding:8px 14px; font-size:13px; border-radius:8px;}
+
+  /* ---------- Toolbar / table ---------- */
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;}
+  .toolbar input, .toolbar select{
+    border:1.5px solid var(--border); border-radius:10px; padding:10px 13px;
+    font-size:13.5px; background:var(--card-2); color:var(--text); font-family:inherit;
+  }
+  .toolbar input{flex:1; min-width:200px;}
+  .toolbar select{min-width:150px;}
+  .toolbar select option{background:var(--card-2);}
+
+  .table-wrap{overflow-x:auto; border-radius:var(--radius); border:1px solid var(--border);}
+  table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:1040px;}
+  thead th{
+    text-align:left; padding:12px 14px; background:var(--card-2); color:var(--text-dim);
+    font-weight:700; font-size:11.5px; text-transform:uppercase; letter-spacing:.3px;
+    border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:12px 14px; border-bottom:1px solid var(--border-soft); color:var(--text);}
+  tbody tr{cursor:pointer; transition:background .12s;}
+  tbody tr:hover{background:var(--card-2);}
+  .badge{display:inline-block; padding:4px 11px; border-radius:999px; font-size:11.5px; font-weight:700;}
+  .badge.activo{background:rgba(61,220,132,0.16); color:var(--green);}
+  .badge.pendiente{background:rgba(245,166,35,0.16); color:var(--amber);}
+  .badge.cancelado{background:rgba(240,85,107,0.16); color:var(--red);}
+  .empty-state{text-align:center; padding:50px 20px; color:var(--text-mute);}
+  .empty-state svg{width:46px; height:46px; opacity:.5; margin-bottom:10px;}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{position:fixed; inset:0; background:rgba(3,9,18,0.6); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:26px; width:100%; max-width:440px; box-shadow:var(--shadow-lg);}
+  .modal h3{margin:0 0 4px; color:#fff; font-size:18px;}
+  .modal p.muted{margin:0 0 18px; font-size:12.5px; color:var(--text-mute);}
+  .modal .field{margin-bottom:14px;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:6px;}
+
+  /* ---------- Toast ---------- */
+  #toast{position:fixed; bottom:24px; right:24px; z-index:200; display:flex; flex-direction:column; gap:10px;}
+  .toast-item{
+    background:var(--card); border:1px solid var(--border); color:#fff; padding:13px 18px; border-radius:10px;
+    font-size:13.5px; font-weight:600; box-shadow:var(--shadow-lg); animation:slideIn .25s ease; max-width:320px;
+  }
+  .toast-item.error{border-color:var(--red); background:#3a1620;}
+  .toast-item.success{border-color:var(--green); background:#0f2c1f;}
+  @keyframes slideIn{from{transform:translateX(40px);opacity:0;} to{transform:translateX(0);opacity:1;}}
+
+  .config-warning{
+    background:#3a2c0a; border:1.5px solid #6e4f0f; color:#f3c969;
+    border-radius:12px; padding:14px 18px; margin-bottom:18px; font-size:13.5px; font-weight:600;
+  }
+
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    aside.sidebar{width:100%; flex-direction:row; overflow-x:auto; padding:10px; align-items:center;}
+    .nav-section-lbl{display:none;}
+    .nav-item{flex-shrink:0;}
+    .sidebar-footer{display:none;}
+    .row-2{grid-template-columns:1fr;}
+  }
+  @media (max-width:720px){
+    form#clientForm{grid-template-columns:1fr;}
+    .stats-row{grid-template-columns:1fr 1fr;}
+    .actions-grid{grid-template-columns:1fr;}
+    header.app-header{justify-content:center; text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="logo-box">
+      <svg width="66" height="66" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="towerGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#15355e"/>
+            <stop offset="100%" stop-color="#5b9c34"/>
+          </linearGradient>
+        </defs>
+        <rect x="38" y="8" width="9" height="34" fill="url(#towerGrad)"/>
+        <rect x="50" y="2" width="9" height="40" fill="url(#towerGrad)"/>
+        <rect x="62" y="14" width="9" height="28" fill="url(#towerGrad)"/>
+        <path d="M30 46 C38 38, 62 38, 70 46" stroke="#5b9c34" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M37 54 C42 49, 58 49, 63 54" stroke="#5b9c34" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <circle cx="50" cy="61" r="5" fill="#5b9c34"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>Zonlin Dominicana S.R.L</h1>
+      <p>Sistema de Gestión de Clientes — ISP · Hato Mayor del Rey</p>
+    </div>
+  </div>
+  <div class="header-pills">
+    <div class="pill"><div class="pill-num" id="pillTotal">0</div><div class="pill-lbl">Clientes</div></div>
+    <div class="pill green"><div class="pill-num" id="pillRevenue">RD$ 0</div><div class="pill-lbl">Ingresos/mes</div></div>
+    <div class="pill"><div class="pill-num" id="pillToday">--/--/----</div><div class="pill-lbl">Hoy</div></div>
+    <button class="pill pill-new-btn" id="pillNewClients" type="button" title="Ver clientes nuevos">
+      <div class="pill-num-split"><span id="pillNewToday">0</span><small>hoy</small><span class="pill-split-sep">/</span><span id="pillNewWeek">0</span><small>semana</small></div>
+      <div class="pill-lbl">Clientes nuevos</div>
+    </button>
+    <a class="pill" style="text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center;" href="tel:18299782855">
+      <div class="pill-num" style="font-size:13px;">📞 829-978-2855</div>
+    </a>
+  </div>
+</header>
+
+<div class="status-bar">
+  <div class="status-left">
+    <span class="status-dot" id="statusDot"></span>
+    <div>
+      <strong id="statusTitle">Google Sheets</strong>
+      <span id="statusSub">Verificando conexión...</span>
+    </div>
+  </div>
+  <button class="icon-btn" id="refreshTopBtn" title="Sincronizar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+  </button>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="towerGradSide" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#15355e"/>
+            <stop offset="100%" stop-color="#5b9c34"/>
+          </linearGradient>
+        </defs>
+        <rect x="38" y="8" width="9" height="34" fill="url(#towerGradSide)"/>
+        <rect x="50" y="2" width="9" height="40" fill="url(#towerGradSide)"/>
+        <rect x="62" y="14" width="9" height="28" fill="url(#towerGradSide)"/>
+        <path d="M30 46 C38 38, 62 38, 70 46" stroke="#5b9c34" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M37 54 C42 49, 58 49, 63 54" stroke="#5b9c34" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <circle cx="50" cy="61" r="5" fill="#5b9c34"/>
+      </svg>
+      <span>Panel de Control</span>
+    </div>
+    <div class="nav-section-lbl">Panel</div>
+    <div class="nav-item active" data-view="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      Dashboard
+    </div>
+
+    <div class="nav-section-lbl">Gestión</div>
+    <div class="nav-item" data-view="form">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+      Registrar Cliente
+    </div>
+    <div class="nav-item" data-view="database">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+      Base de Datos
+    </div>
+
+    <div class="nav-section-lbl">Reportes</div>
+    <div class="nav-item" data-view="stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Estadísticas
+    </div>
+    <div class="nav-item" data-view="sector">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Por Sector
+    </div>
+
+    <div class="sidebar-footer">Zonlin Dominicana SRL © 2025</div>
+  </aside>
+
+  <main class="content">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="view-overview" class="view active">
+      <p class="page-title">Dashboard</p>
+      <p class="page-sub" id="todayLong"></p>
+
+      <div id="configWarningOverview" class="config-warning" style="display:none;">
+        ⚠️ Aún no has conectado tu Google Sheet. Edita <code>CONFIG.API_URL</code> en este archivo. Ver SETUP.md.
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="num" id="ovTotal">0</div><div class="lbl">Total clientes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="num" id="ovRevenue">RD$ 0</div><div class="lbl">Ingresos mensuales</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="num" id="ovPlan">—</div><div class="lbl">Plan más popular</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div class="num" id="ovSector">—</div><div class="lbl">Sector líder</div>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="card">
+          <p class="section-title">Acciones rápidas</p>
+          <div class="actions-grid">
+            <button class="action-btn" id="qaNuevo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nuevo cliente
+            </button>
+            <button class="action-btn" id="qaSync">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+              Sincronizar Sheets
+            </button>
+            <button class="action-btn" id="qaVerDb">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/></svg>
+              Ver base de datos
+            </button>
+            <button class="action-btn" id="qaExport">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="section-title">Últimos registros</p>
+          <div class="recent-list" id="recentList">
+            <div class="empty-state" style="padding:20px;">Sin registros todavía.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="card">
+          <p class="section-title">Distribución de planes</p>
+          <div id="distPlanOverview"></div>
+        </div>
+        <div class="card">
+          <p class="section-title">Distribución por sector</p>
+          <div id="distSectorOverview"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FORMULARIO ============ -->
+    <section id="view-form" class="view">
+      <div class="card">
+        <p class="page-title">Registro de Solicitud de Servicio</p>
+        <p class="page-sub">Completa los datos del cliente. El ID se genera automáticamente al guardar.</p>
+
+        <div id="configWarningForm" class="config-warning" style="display:none;">
+          ⚠️ Aún no has conectado tu Google Sheet. Edita <code>CONFIG.API_URL</code> en este archivo
+          (busca <code>CONFIG.API_URL</code> al final del HTML) con la URL de tu Apps Script. Ver SETUP.md.
+        </div>
+
+        <form id="clientForm">
+          <div class="field">
+            <label>ID Cliente</label>
+            <div class="id-preview">Se generará automáticamente</div>
+          </div>
+
+          <div class="field">
+            <label for="nombre">Nombre Completo *</label>
+            <input id="nombre" required placeholder="Ej. Juana Pérez Rodríguez">
+          </div>
+
+          <div class="field">
+            <label for="cedula">Cédula *</label>
+            <input id="cedula" required maxlength="13" placeholder="000-0000000-0">
+          </div>
+
+          <div class="field">
+            <label for="telefono">Teléfono *</label>
+            <input id="telefono" type="tel" required placeholder="809-000-0000">
+          </div>
+
+          <div class="field">
+            <label for="correo">Correo Electrónico *</label>
+            <input id="correo" type="email" required placeholder="cliente@correo.com">
+          </div>
+
+          <div class="field">
+            <label for="plan">Plan *</label>
+            <select id="plan" required>
+              <option value="" disabled selected>Selecciona un plan</option>
+              <option value="7 Mbps">7 Mbps</option>
+              <option value="10 Mbps">10 Mbps</option>
+              <option value="15 Mbps">15 Mbps</option>
+              <option value="20 Mbps">20 Mbps</option>
+              <option value="30 Mbps">30 Mbps</option>
+              <option value="50 Mbps">50 Mbps</option>
+              <option value="100 Mbps">100 Mbps</option>
+            </select>
+            <small>El precio sugerido se llena solo; puedes ajustarlo.</small>
+          </div>
+
+          <div class="field">
+            <label for="precio">Precio del Plan (RD$) *</label>
+            <div class="price-wrap">
+              <span>RD$</span>
+              <input id="precio" type="number" min="0" step="0.01" required placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="sector">Sector *</label>
+            <select id="sector" required>
+              <option value="" disabled selected>Selecciona un sector</option>
+              <option>La Javilla</option>
+              <option>Gualey</option>
+              <option>Punta de Garza</option>
+              <option>Barrio Puerto Rico</option>
+              <option>Plata Bella</option>
+              <option>Los Morunos</option>
+              <option>El Campamento Ondina</option>
+              <option>Los Multis</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="estado">Estado del Servicio</label>
+            <select id="estado">
+              <option>Pendiente</option>
+              <option>Activo</option>
+              <option>Cancelado</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="direccion">Dirección / Referencia</label>
+            <textarea id="direccion" placeholder="Calle, número, punto de referencia..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Registrar Cliente</button>
+            <button type="reset" class="btn btn-ghost">Limpiar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ BASE DE DATOS ============ -->
+    <section id="view-database" class="view">
+      <p class="page-title">Base de Datos</p>
+      <p class="page-sub">Consulta, busca y edita los clientes registrados.</p>
+
+      <div id="configWarningDash" class="config-warning" style="display:none;">
+        ⚠️ Conecta tu Google Sheet para ver los clientes. Edita <code>CONFIG.API_URL</code> en index.html. Ver SETUP.md.
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <input id="searchInput" placeholder="Buscar por nombre, cédula o teléfono...">
+          <select id="filterSector"><option value="">Todos los sectores</option></select>
+          <select id="filterPlan"><option value="">Todos los planes</option></select>
+          <select id="filterEstado">
+            <option value="">Todos los estados</option>
+            <option>Pendiente</option><option>Activo</option><option>Cancelado</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" id="refreshBtn">⟳ Actualizar</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="clientsTable">
+            <thead>
+              <tr>
+                <th>ID</th><th>Nombre</th><th>Cédula</th><th>Teléfono</th>
+                <th>Plan</th><th>Precio</th><th>Sector</th><th>Dirección / Referencia</th><th>Estado</th><th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="clientsBody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <p>No hay clientes que coincidan con la búsqueda.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ESTADÍSTICAS ============ -->
+    <section id="view-stats" class="view">
+      <p class="page-title">Estadísticas</p>
+      <p class="page-sub">Distribución de clientes por tipo de plan.</p>
+      <div class="card">
+        <p class="section-title">Clientes por plan</p>
+        <div id="distPlanFull"></div>
+      </div>
+    </section>
+
+    <!-- ============ POR SECTOR ============ -->
+    <section id="view-sector" class="view">
+      <p class="page-title">Por Sector</p>
+      <p class="page-sub">Distribución de clientes por barrio / sector.</p>
+      <div class="card">
+        <p class="section-title">Clientes por sector</p>
+        <div id="distSectorFull"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Modal de edición -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3 id="modalName">Editar cliente</h3>
+    <p class="muted" id="modalId">ID</p>
+    <div class="field">
+      <label>Plan</label>
+      <select id="editPlan">
+        <option value="7 Mbps">7 Mbps</option><option value="10 Mbps">10 Mbps</option>
+        <option value="15 Mbps">15 Mbps</option><option value="20 Mbps">20 Mbps</option>
+        <option value="30 Mbps">30 Mbps</option><option value="50 Mbps">50 Mbps</option>
+        <option value="100 Mbps">100 Mbps</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Precio (RD$)</label>
+      <input id="editPrecio" type="number" min="0" step="0.01">
+    </div>
+    <div class="field">
+      <label>Estado del Servicio</label>
+      <select id="editEstado"><option>Pendiente</option><option>Activo</option><option>Cancelado</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="cancelEdit">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="saveEdit">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIGURACIÓN — pega aquí la URL de tu Google Apps Script
+   Ver SETUP.md para instrucciones completas.
+   ============================================================ */
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbxMY2dH4mQVXwLfsnFxP1q2b_5fn9N9Jm7W07Gb3aSUNIzYqUu1md0yMt6DVBbSVIaT/exec',
+  // Debe coincidir EXACTO con SECRET_TOKEN en Code.gs. Protege los datos de
+  // clientes aunque este archivo se publique en un repositorio público.
+  TOKEN: 'zln_zd0EJNViIe8c1J6Ap_Zom_Ob'
+};
+
+const PLAN_PRICES = {
+  '7 Mbps': 700, '10 Mbps': 850, '15 Mbps': 1000, '20 Mbps': 1200,
+  '30 Mbps': 1500, '50 Mbps': 2000, '100 Mbps': 3000
+};
+
+const SECTORES = ['La Javilla','Gualey','Punta de Garza','Barrio Puerto Rico','Plata Bella','Los Morunos','El Campamento Ondina','Los Multis'];
+const PLANES = ['7 Mbps','10 Mbps','15 Mbps','20 Mbps','30 Mbps','50 Mbps','100 Mbps'];
+
+let CLIENTS = [];
+
+/* ---------- Helpers ---------- */
+function isConfigured(){ return CONFIG.API_URL && CONFIG.API_URL.indexOf('http') === 0; }
+
+function toast(msg, type='success'){
+  const el = document.createElement('div');
+  el.className = 'toast-item ' + type;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(()=>el.remove(), 4000);
+}
+
+function fmtMoney(n){
+  n = Number(n) || 0;
+  return 'RD$ ' + n.toLocaleString('es-DO', {minimumFractionDigits:0, maximumFractionDigits:2});
+}
+
+function fmtDate(d){
+  if(!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return d;
+  return dt.toLocaleDateString('es-DO');
+}
+
+function badgeClass(estado){
+  estado = (estado||'').toLowerCase();
+  if (estado === 'activo') return 'activo';
+  if (estado === 'cancelado') return 'cancelado';
+  return 'pendiente';
+}
+
+function initials(name){
+  if(!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]||'')[0] + (parts[1]||'')[0]).toUpperCase();
+}
+
+function mostCommon(list, key){
+  const counts = {};
+  list.forEach(c=>{ const v = c[key]; if(v) counts[v] = (counts[v]||0)+1; });
+  let best = null, bestN = 0;
+  Object.keys(counts).forEach(k=>{ if(counts[k] > bestN){ best = k; bestN = counts[k]; } });
+  return best || '—';
+}
+
+/* ---------- Fecha de hoy en header ---------- */
+(function setToday(){
+  const now = new Date();
+  document.getElementById('pillToday').textContent = now.toLocaleDateString('es-DO');
+  document.getElementById('todayLong').textContent = now.toLocaleDateString('es-DO', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+})();
+
+/* ---------- Navegación sidebar ---------- */
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click', ()=> switchView(item.dataset.view));
+});
+
+function switchView(view){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelector('.nav-item[data-view="' + view + '"]').classList.add('active');
+  document.getElementById('view-' + view).classList.add('active');
+  if (['overview','database','stats','sector'].includes(view)) loadClients();
+}
+
+/* ---------- Cédula auto-formato ---------- */
+document.getElementById('cedula').addEventListener('input', (e)=>{
+  let v = e.target.value.replace(/\D/g,'').slice(0,11);
+  let out = v;
+  if (v.length > 3) out = v.slice(0,3) + '-' + v.slice(3);
+  if (v.length > 10) out = out.slice(0,11) + '-' + v.slice(10);
+  e.target.value = out;
+});
+
+/* ---------- Auto precio según plan ---------- */
+document.getElementById('plan').addEventListener('change', (e)=>{
+  const p = PLAN_PRICES[e.target.value];
+  if (p !== undefined) document.getElementById('precio').value = p;
+});
+
+/* ---------- Envío de formulario ---------- */
+document.getElementById('clientForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+
+  if (!isConfigured()){
+    toast('Configura primero la conexión a Google Sheets (ver SETUP.md).', 'error');
+    return;
+  }
+
+  const payload = {
+    token: CONFIG.TOKEN,
+    nombre: document.getElementById('nombre').value.trim(),
+    cedula: document.getElementById('cedula').value.trim(),
+    telefono: document.getElementById('telefono').value.trim(),
+    correo: document.getElementById('correo').value.trim(),
+    plan: document.getElementById('plan').value,
+    precio: document.getElementById('precio').value,
+    sector: document.getElementById('sector').value,
+    direccion: document.getElementById('direccion').value.trim(),
+    estado: document.getElementById('estado').value
+  };
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Cliente registrado con éxito (' + data.id + ').', 'success');
+      document.getElementById('clientForm').reset();
+      loadClients();
+    } else {
+      toast('Error: ' + (data.error || 'no se pudo guardar'), 'error');
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets. Revisa CONFIG.API_URL.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Registrar Cliente';
+  }
+});
+
+/* ---------- Cargar clientes ---------- */
+async function loadClients(){
+  const warnings = [
+    document.getElementById('configWarningForm'),
+    document.getElementById('configWarningDash'),
+    document.getElementById('configWarningOverview')
+  ];
+
+  if (!isConfigured()){
+    warnings.forEach(w=> w.style.display = 'block');
+    setStatus(false, 'No conectado — configura tu Google Sheet (ver SETUP.md)');
+    renderTable([]);
+    renderHeader([]);
+    renderOverviewWidgets([]);
+    renderDistributions([]);
+    return;
+  }
+  warnings.forEach(w=> w.style.display = 'none');
+
+  try{
+    const res = await fetch(CONFIG.API_URL + '?token=' + encodeURIComponent(CONFIG.TOKEN));
+    const data = await res.json();
+    if (data.ok){
+      CLIENTS = data.clients || [];
+      setStatus(true, 'Conectado — sincronización activa con Google Sheets');
+      populateFilters();
+      applyFilters();
+      renderHeader(CLIENTS);
+      renderOverviewWidgets(CLIENTS);
+      renderDistributions(CLIENTS);
+    } else {
+      setStatus(false, 'Error: ' + data.error);
+      toast('Error cargando clientes: ' + data.error, 'error');
+    }
+  } catch(err){
+    setStatus(false, 'No se pudo conectar con Google Sheets');
+    toast('No se pudo conectar con Google Sheets.', 'error');
+  }
+}
+
+function setStatus(ok, text){
+  document.getElementById('statusDot').className = 'status-dot' + (ok ? '' : ' off');
+  document.getElementById('statusSub').textContent = text;
+}
+
+function renderHeader(list){
+  document.getElementById('pillTotal').textContent = list.length;
+  const revenue = list.filter(c=>c['Estado']==='Activo').reduce((s,c)=> s + (Number(c['Precio'])||0), 0);
+  document.getElementById('pillRevenue').textContent = fmtMoney(revenue);
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dow = now.getDay(); // 0=domingo
+  const diffToMonday = (dow === 0 ? 6 : dow - 1);
+  const startOfWeek = new Date(startOfToday);
+  startOfWeek.setDate(startOfToday.getDate() - diffToMonday);
+
+  let newToday = 0, newWeek = 0;
+  list.forEach(c=>{
+    const dt = new Date(c['Fecha de Registro']);
+    if (isNaN(dt.getTime())) return;
+    if (dt >= startOfToday) newToday++;
+    if (dt >= startOfWeek) newWeek++;
+  });
+  document.getElementById('pillNewToday').textContent = newToday;
+  document.getElementById('pillNewWeek').textContent = newWeek;
+}
+
+function renderOverviewWidgets(list){
+  document.getElementById('ovTotal').textContent = list.length;
+  const revenue = list.filter(c=>c['Estado']==='Activo').reduce((s,c)=> s + (Number(c['Precio'])||0), 0);
+  document.getElementById('ovRevenue').textContent = fmtMoney(revenue);
+  document.getElementById('ovPlan').textContent = mostCommon(list, 'Plan');
+  document.getElementById('ovSector').textContent = mostCommon(list, 'Sector');
+
+  const recentList = document.getElementById('recentList');
+  if (!list.length){
+    recentList.innerHTML = '<div class="empty-state" style="padding:20px;">Sin registros todavía.</div>';
+    return;
+  }
+  const recent = list.slice().sort((a,b)=> (b._row||0) - (a._row||0)).slice(0,5);
+  recentList.innerHTML = recent.map(c=>`
+    <div class="recent-item">
+      <div class="avatar">${initials(c['Nombre Completo'])}</div>
+      <div class="recent-info">
+        <div class="nm">${c['Nombre Completo']||'Sin nombre'}</div>
+        <div class="sub">${c['ID Cliente']||''} · ${c['Sector']||''}</div>
+      </div>
+      <div class="recent-right">
+        <span class="plan-chip">${c['Plan']||''}</span>
+        <div class="price">${fmtMoney(c['Precio'])}/mes</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function buildDistribution(list, key, allValues){
+  const counts = {};
+  allValues.forEach(v=> counts[v] = 0);
+  list.forEach(c=>{ const v = c[key]; if (v !== undefined && v !== '') counts[v] = (counts[v]||0)+1; });
+  const max = Math.max(1, ...Object.values(counts));
+  return Object.keys(counts).map(label=>({
+    label, count: counts[label], pct: Math.round((counts[label]/max)*100)
+  }));
+}
+
+function renderDistList(containerId, items){
+  const el = document.getElementById(containerId);
+  if (!items.length){ el.innerHTML = '<div class="empty-state" style="padding:14px;">Sin datos aún.</div>'; return; }
+  el.innerHTML = items.map(it=>`
+    <div class="dist-item">
+      <div class="dist-row">
+        <span class="dist-label">${it.label}</span>
+        <span class="dist-count">${it.count} cliente${it.count===1?'':'s'}</span>
+      </div>
+      <div class="dist-bar-track"><div class="dist-bar-fill" style="width:${it.pct}%"></div></div>
+    </div>
+  `).join('');
+}
+
+function renderDistributions(list){
+  const planDist = buildDistribution(list, 'Plan', PLANES);
+  const sectorDist = buildDistribution(list, 'Sector', SECTORES);
+  renderDistList('distPlanOverview', planDist);
+  renderDistList('distSectorOverview', sectorDist);
+  renderDistList('distPlanFull', planDist);
+  renderDistList('distSectorFull', sectorDist);
+}
+
+function populateFilters(){
+  const sectores = [...new Set(CLIENTS.map(c=>c['Sector']).filter(Boolean))].sort();
+  const planes = [...new Set(CLIENTS.map(c=>c['Plan']).filter(Boolean))].sort();
+
+  const fSector = document.getElementById('filterSector');
+  const fPlan = document.getElementById('filterPlan');
+  const curSector = fSector.value, curPlan = fPlan.value;
+
+  fSector.innerHTML = '<option value="">Todos los sectores</option>' + sectores.map(s=>`<option>${s}</option>`).join('');
+  fPlan.innerHTML = '<option value="">Todos los planes</option>' + planes.map(p=>`<option>${p}</option>`).join('');
+  fSector.value = curSector; fPlan.value = curPlan;
+}
+
+function applyFilters(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const sector = document.getElementById('filterSector').value;
+  const plan = document.getElementById('filterPlan').value;
+  const estado = document.getElementById('filterEstado').value;
+
+  const filtered = CLIENTS.filter(c=>{
+    const matchesQ = !q ||
+      String(c['Nombre Completo']||'').toLowerCase().includes(q) ||
+      String(c['Cedula']||'').toLowerCase().includes(q) ||
+      String(c['Telefono']||'').toLowerCase().includes(q);
+    const matchesSector = !sector || c['Sector'] === sector;
+    const matchesPlan = !plan || c['Plan'] === plan;
+    const matchesEstado = !estado || c['Estado'] === estado;
+    return matchesQ && matchesSector && matchesPlan && matchesEstado;
+  });
+
+  renderTable(filtered);
+}
+
+function renderTable(list){
+  const body = document.getElementById('clientsBody');
+  const empty = document.getElementById('emptyState');
+
+  if (!list.length){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  body.innerHTML = list.map((c)=>`
+    <tr data-idx="${CLIENTS.indexOf(c)}">
+      <td>${c['ID Cliente']||''}</td>
+      <td>${c['Nombre Completo']||''}</td>
+      <td>${c['Cedula']||''}</td>
+      <td>${c['Telefono']||''}</td>
+      <td>${c['Plan']||''}</td>
+      <td>${fmtMoney(c['Precio'])}</td>
+      <td>${c['Sector']||''}</td>
+      <td>${c['Direccion / Referencia']||''}</td>
+      <td><span class="badge ${badgeClass(c['Estado'])}">${c['Estado']||'Pendiente'}</span></td>
+      <td>${fmtDate(c['Fecha de Registro'])}</td>
+    </tr>
+  `).join('');
+
+  body.querySelectorAll('tr').forEach(tr=>{
+    tr.addEventListener('click', ()=> openEditModal(CLIENTS[Number(tr.dataset.idx)]));
+  });
+}
+
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+document.getElementById('filterSector').addEventListener('change', applyFilters);
+document.getElementById('filterPlan').addEventListener('change', applyFilters);
+document.getElementById('filterEstado').addEventListener('change', applyFilters);
+document.getElementById('refreshBtn').addEventListener('click', loadClients);
+document.getElementById('refreshTopBtn').addEventListener('click', loadClients);
+
+/* ---------- Acciones rápidas del dashboard ---------- */
+document.getElementById('qaNuevo').addEventListener('click', ()=> switchView('form'));
+document.getElementById('qaVerDb').addEventListener('click', ()=> switchView('database'));
+document.getElementById('pillNewClients').addEventListener('click', ()=> switchView('database'));
+document.getElementById('qaSync').addEventListener('click', ()=>{ loadClients(); toast('Sincronizado con Google Sheets.', 'success'); });
+document.getElementById('qaExport').addEventListener('click', exportCSV);
+
+function exportCSV(){
+  if (!CLIENTS.length){ toast('No hay clientes para exportar.', 'error'); return; }
+  const headers = ['ID Cliente','Nombre Completo','Cedula','Telefono','Correo Electronico','Plan','Precio','Sector','Direccion / Referencia','Estado','Fecha de Registro'];
+  const escape = (v)=> '"' + String(v===undefined||v===null?'':v).replace(/"/g,'""') + '"';
+  const rows = [headers.map(escape).join(',')].concat(
+    CLIENTS.map(c=> headers.map(h=> escape(c[h])).join(','))
+  );
+  const blob = new Blob([rows.join('\n')], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'zonlin_clientes.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('CSV exportado.', 'success');
+}
+
+/* ---------- Modal de edición ---------- */
+let editingClient = null;
+
+function openEditModal(client){
+  editingClient = client;
+  document.getElementById('modalName').textContent = client['Nombre Completo'] || 'Editar cliente';
+  document.getElementById('modalId').textContent = client['ID Cliente'] || '';
+  document.getElementById('editPlan').value = client['Plan'] || '7 Mbps';
+  document.getElementById('editPrecio').value = client['Precio'] || 0;
+  document.getElementById('editEstado').value = client['Estado'] || 'Pendiente';
+  document.getElementById('editModal').classList.add('show');
+}
+
+document.getElementById('cancelEdit').addEventListener('click', ()=>{
+  document.getElementById('editModal').classList.remove('show');
+});
+
+document.getElementById('saveEdit').addEventListener('click', async ()=>{
+  if (!editingClient) return;
+  const fields = {
+    'Plan': document.getElementById('editPlan').value,
+    'Precio': document.getElementById('editPrecio').value,
+    'Estado': document.getElementById('editEstado').value
+  };
+
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ token: CONFIG.TOKEN, action:'update', _row: editingClient._row, fields })
+    });
+    const data = await res.json();
+    if (data.ok){
+      toast('Cliente actualizado.', 'success');
+      document.getElementById('editModal').classList.remove('show');
+      loadClients();
+    } else {
+      toast('Error: ' + data.error, 'error');
+    }
+  } catch(err){
+    toast('No se pudo conectar con Google Sheets.', 'error');
+  }
+});
+
+document.getElementById('editModal').addEventListener('click', (e)=>{
+  if (e.target.id === 'editModal') e.target.classList.remove('show');
+});
+
+/* ---------- Init ---------- */
+loadClients();
+setInterval(loadClients, 60000); // refresca clientes/contadores automáticamente cada 60s
+</script>
+</body>
+</html>
